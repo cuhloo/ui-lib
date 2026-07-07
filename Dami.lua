@@ -1,9 +1,4 @@
---[[
-	ZYREN UI LIBRARY
-	Premium Glassmorphic / Cyberpunk UI Library.
-	Featuring collapsible section cards, auto-balanced dual-column grids,
-	built-in preset color themes, and integrated JSON config profiles.
-]]
+
 
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
@@ -12,10 +7,6 @@ local RunService = game:GetService("RunService")
 local HttpService = game:GetService("HttpService")
 
 local Player = Players.LocalPlayer
-
--- ============================================================
--- THEME SYSTEM & PRESETS (Inspired by inspo.lua)
--- ============================================================
 
 local PresetThemes = {
 	cherry = {
@@ -49,15 +40,15 @@ local PresetThemes = {
 }
 
 local Theme = {
-	Background = Color3.fromRGB(12, 12, 16),       -- Slate obsidian background
-	Panel      = Color3.fromRGB(18, 18, 26),       -- Slate card boxes
-	Elevated   = Color3.fromRGB(26, 26, 38),       -- Controls / Buttons
-	Stroke     = Color3.fromRGB(36, 36, 50),       -- Section outline borders
-	HoverStroke = Color3.fromRGB(56, 56, 75),      -- Subtle slate highlight when hovered
-	Accent     = Color3.fromRGB(68, 90, 255),      -- Default vivid blue accent
-	AccentDim  = Color3.fromRGB(45, 60, 180),      -- Dimmer blue for click states
-	Text       = Color3.fromRGB(230, 230, 230),    -- Crisp off-white text
-	SubText    = Color3.fromRGB(130, 130, 150),    -- Muted label text
+	Background = Color3.fromRGB(12, 12, 16),
+	Panel      = Color3.fromRGB(18, 18, 26),
+	Elevated   = Color3.fromRGB(26, 26, 38),
+	Stroke     = Color3.fromRGB(36, 36, 50),
+	HoverStroke = Color3.fromRGB(56, 56, 75),
+	Accent     = Color3.fromRGB(68, 90, 255),
+	AccentDim  = Color3.fromRGB(45, 60, 180),
+	Text       = Color3.fromRGB(230, 230, 230),
+	SubText    = Color3.fromRGB(130, 130, 150),
 
 	TitleFont      = Enum.Font.GothamMedium,
 	BodyFont       = Enum.Font.Gotham,
@@ -88,10 +79,6 @@ local function addToolTipToInstance(instance, window, text)
 		end)
 	end
 end
-
--- ============================================================
--- UTILITY FUNCTIONS
--- ============================================================
 
 local Utility = {}
 
@@ -159,10 +146,6 @@ function Utility.hoverGlow(trigger, stroke, options)
 		Utility.tween(stroke, {Color = Theme[restKey], Thickness = restThickness}, 0.1, nil, nil, "glow")
 	end)
 end
-
--- ------------------------------------------------------------
--- DRAG & RESIZE DISPATCHERS
--- ------------------------------------------------------------
 
 local DragRegistry = {}
 local dragIdCounter = 0
@@ -274,10 +257,6 @@ local function registerFlag(window, flagName, getVal, setVal)
 	}
 end
 
--- ============================================================
--- CORE LIBRARY CLASS
--- ============================================================
-
 local Zyren = {}
 Zyren.__index = Zyren
 
@@ -297,7 +276,6 @@ function Zyren.new(options)
 		title = options
 	end
 
-	-- Override theme configurations (preset string OR custom table support)
 	if type(options) == "table" then
 		if type(options.Theme) == "string" then
 			local preset = PresetThemes[string.lower(options.Theme)]
@@ -328,7 +306,6 @@ function Zyren.new(options)
 		screenGui.Parent = Player:WaitForChild("PlayerGui")
 	end
 
-	-- Tooltip
 	local toolTip = Utility.create("Frame", {
 		Name = "ToolTip",
 		BackgroundColor3 = Theme.Elevated,
@@ -365,14 +342,13 @@ function Zyren.new(options)
 		end
 	end)
 
-	-- Window base (Frosted Glass Acrylic Look)
 	local main = Utility.create("Frame", {
 		Name = "Main",
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.new(0.5, 0, 0.5, 0),
 		Size = UDim2.new(0, 540, 0, 420),
 		BackgroundColor3 = Theme.Background,
-		BackgroundTransparency = 0.1, -- Minimal frosted glass opacity
+		BackgroundTransparency = 0.1,
 		BorderSizePixel = 0,
 		Parent = screenGui,
 	}, {
@@ -383,7 +359,6 @@ function Zyren.new(options)
 	windowStroke.Parent = main
 	themed(windowStroke, "Color", "Accent")
 
-	-- Top bar / Header
 	local topBar = Utility.create("Frame", {
 		Name = "TopBar",
 		Size = UDim2.new(1, 0, 0, 32),
@@ -395,7 +370,7 @@ function Zyren.new(options)
 	})
 	themed(topBar, "BackgroundColor3", "Panel")
 	
-	-- Mask bottom corners of TopBar
+
 	Utility.create("Frame", {
 		Size = UDim2.new(1, 0, 0, 8),
 		Position = UDim2.new(0, 0, 1, -8),
@@ -418,7 +393,6 @@ function Zyren.new(options)
 	themed(titleLabel, "TextColor3", "Text")
 	themed(titleLabel, "Font", "TitleFont")
 
-	-- Header Controls: Global Search
 	local searchHolder = Utility.create("Frame", {
 		Name = "SearchHolder",
 		AnchorPoint = Vector2.new(1, 0.5),
@@ -489,13 +463,12 @@ function Zyren.new(options)
 
 	Utility.drag(topBar, main)
 
-	-- Sidebar (Narrow, fixed width of 48px)
 	local sidebarWidth = 48
 
 	local sidebar = Utility.create("Frame", {
 		Name = "Sidebar",
 		Position = UDim2.new(0, 0, 0, 32),
-		Size = UDim2.new(0, sidebarWidth, 1, -52), -- 32 topbar + 20 footer = 52 subtracted
+		Size = UDim2.new(0, sidebarWidth, 1, -52),
 		BackgroundColor3 = Theme.Panel,
 		BorderSizePixel = 0,
 		Parent = main,
@@ -520,7 +493,6 @@ function Zyren.new(options)
 		Utility.pad(0, 0, 8, 8),
 	})
 
-	-- Page container
 	local pageContainer = Utility.create("Frame", {
 		Name = "Pages",
 		Position = UDim2.new(0, sidebarWidth, 0, 32),
@@ -529,7 +501,6 @@ function Zyren.new(options)
 		Parent = main,
 	})
 
-	-- Footer Status Bar
 	local footer = Utility.create("Frame", {
 		Name = "Footer",
 		Size = UDim2.new(1, 0, 0, 20),
@@ -542,7 +513,6 @@ function Zyren.new(options)
 	})
 	themed(footer, "BackgroundColor3", "Panel")
 
-	-- Mask top corners of footer
 	Utility.create("Frame", {
 		Size = UDim2.new(1, 0, 0, 4),
 		Position = UDim2.new(0, 0, 0, 0),
@@ -579,7 +549,6 @@ function Zyren.new(options)
 	themed(timeLabel, "TextColor3", "SubText")
 	themed(timeLabel, "Font", "BodyFont")
 
-	-- Telemetry updating
 	local fpsCount = 0
 	local lastFpsUpdate = os.clock()
 	local fps = 60
@@ -623,7 +592,6 @@ function Zyren.new(options)
 		end
 	end)
 
-	-- Draggable Resizer Corner Handle
 	local resizeHandle = Utility.create("ImageButton", {
 		Name = "ResizeHandle",
 		Size = UDim2.new(0, 12, 0, 12),
@@ -672,7 +640,6 @@ function Zyren.new(options)
 	self:RegisterConnection(toolTipConn)
 	self:RegisterConnection(telemetryConn)
 
-	-- Search filtering
 	local function filterControls(query)
 		query = string.lower(query)
 		local tabHasMatches = {}
@@ -778,10 +745,6 @@ function Zyren:HideToolTip()
 	self.toolTip.Visible = false
 end
 
--- ============================================================
--- CONFIG MANAGEMENT SYSTEM
--- ============================================================
-
 function Zyren:SaveConfig(name)
 	name = name or "default"
 	local folder = "zyren_configs"
@@ -829,12 +792,8 @@ function Zyren:LoadConfig(name)
 	return success, err
 end
 
--- ============================================================
--- TAB METHODS
--- ============================================================
-
 function Zyren:AddTab(name, options)
-	local icon = options and options.Icon or "rbxassetid://10747373176" -- fallback default icon
+	local icon = options and options.Icon or "rbxassetid://10747373176"
 
 	local button = Utility.create("TextButton", {
 		Text = "",
@@ -881,7 +840,6 @@ function Zyren:AddTab(name, options)
 		Parent = self.pageContainer,
 	})
 
-	-- Tab scrolling page
 	local page = Utility.create("ScrollingFrame", {
 		Size = UDim2.new(1, -20, 1, -20),
 		Position = UDim2.new(0, 10, 0, 10),
@@ -895,7 +853,6 @@ function Zyren:AddTab(name, options)
 	})
 	themed(page, "ScrollBarImageColor3", "Accent")
 
-	-- Balanced dual columns (Left & Right) inside the tab page (Inspired by image 3)
 	local leftColumn = Utility.create("Frame", {
 		Name = "LeftColumn",
 		Size = UDim2.new(0.5, -6, 0, 0),
@@ -1003,7 +960,7 @@ function Zyren:SelectTab(tab)
 
 	self.activeTab = tab
 	
-	-- Fire state updates
+
 	for _, t in ipairs(self.tabs) do
 		local isActive = (t == tab)
 		t.iconLabel.ImageColor3 = isActive and Theme.Text or Theme.SubText
@@ -1143,12 +1100,8 @@ function Zyren:Notify(title, text, typeName, duration)
 	end)
 end
 
--- ============================================================
--- SECTION METHODS (Supports collapsibility inspired by inspo.lua)
--- ============================================================
-
 function Tab:AddSection(name)
-	-- Balancing logic: Add to the shorter column
+
 	local targetColumn = self.leftColumn
 	if self.leftColumn.UIListLayout.AbsoluteContentSize.Y > self.rightColumn.UIListLayout.AbsoluteContentSize.Y then
 		targetColumn = self.rightColumn
@@ -1171,7 +1124,6 @@ function Tab:AddSection(name)
 	stroke.Parent = container
 	themed(stroke, "Color", "Stroke")
 
-	-- Header container for title and minimize arrow
 	local header = Utility.create("Frame", {
 		Size = UDim2.new(1, 0, 0, 16),
 		BackgroundTransparency = 1,
@@ -1198,14 +1150,13 @@ function Tab:AddSection(name)
 		Position = UDim2.new(1, -2, 0.5, 0),
 		AnchorPoint = Vector2.new(1, 0.5),
 		BackgroundTransparency = 1,
-		Image = "rbxassetid://9801471573", -- chevron/arrow down
+		Image = "rbxassetid://9801471573",
 		ImageColor3 = Theme.SubText,
-		Rotation = 90, -- pointed down initially (expanded)
+		Rotation = 90,
 		Parent = header,
 	})
 	themed(minButton, "ImageColor3", "SubText")
 
-	-- Nested holder containing all section elements (toggled on minimize)
 	local contentHolder = Utility.create("Frame", {
 		Name = "Content",
 		Size = UDim2.new(1, 0, 0, 0),
@@ -1218,10 +1169,9 @@ function Tab:AddSection(name)
 			SortOrder = Enum.SortOrder.LayoutOrder,
 			Padding = UDim.new(0, 6),
 		}),
-		Utility.pad(0, 0, 6, 0), -- separate layout slightly from header
+		Utility.pad(0, 0, 6, 0),
 	})
 
-	-- Vertical list layout to align header and content container
 	Utility.create("UIListLayout", {
 		SortOrder = Enum.SortOrder.LayoutOrder,
 		Padding = UDim.new(0, 0),
@@ -1249,11 +1199,6 @@ function Tab:AddSection(name)
 	return section
 end
 
--- ============================================================
--- COMPONENTS IMPLEMENTATION (Redirected to section.contentHolder)
--- ============================================================
-
--- BUTTON
 function Section:AddButton(text, callback)
 	local section = self
 	local btn = card(26)
@@ -1299,7 +1244,6 @@ function Section:AddButton(text, callback)
 	return api
 end
 
--- TOGGLE
 function Section:AddToggle(text, default, callback, flag)
 	local defaultVal = default
 	local flagName = flag
@@ -1316,7 +1260,6 @@ function Section:AddToggle(text, default, callback, flag)
 	local toggle = card(26)
 	toggle.Parent = section.contentHolder
 
-	-- Simple Left aligned Checkbox
 	local track = Utility.create("Frame", {
 		AnchorPoint = Vector2.new(0, 0.5),
 		Position = UDim2.new(0, 8, 0.5, 0),
@@ -1382,7 +1325,6 @@ function Section:AddToggle(text, default, callback, flag)
 		return api
 	end
 
-	-- Inline Bracketed Keybinds: [ KEYNAME ]
 	function api:CreateKeybind(defaultBind, toggleCallback)
 		local keybindHolder = Utility.create("Frame", {
 			AnchorPoint = Vector2.new(1, 0.5),
@@ -1463,7 +1405,6 @@ function Section:AddToggle(text, default, callback, flag)
 	return api
 end
 
--- SLIDER
 function Section:AddSlider(text, min, max, default, options, callback)
 	local section = self
 	if type(options) == "function" then
@@ -1510,7 +1451,7 @@ function Section:AddSlider(text, min, max, default, options, callback)
 	themed(valueBox, "Font", "BodyFontBold")
 
 	local bar = Utility.create("Frame", {
-		Position = UDim2.new(0, 8, 0, 22), Size = UDim2.new(1, -16, 0, 4), -- Thinner slider line
+		Position = UDim2.new(0, 8, 0, 22), Size = UDim2.new(1, -16, 0, 4),
 		BackgroundColor3 = Theme.Stroke, BorderSizePixel = 0, Parent = slider,
 	}, {Utility.corner(2)})
 	themed(bar, "BackgroundColor3", "Stroke")
@@ -1596,7 +1537,6 @@ function Section:AddSlider(text, min, max, default, options, callback)
 	return api
 end
 
--- TEXTBOX
 function Section:AddTextbox(text, placeholder, callback, flag)
 	local flagName = flag
 	if type(placeholder) == "table" then
@@ -1661,7 +1601,6 @@ function Section:AddTextbox(text, placeholder, callback, flag)
 	return api
 end
 
--- KEYBIND
 function Section:AddKeybind(text, default, callback, flag)
 	local flagName = flag
 	if type(default) == "table" then
@@ -1768,7 +1707,6 @@ function Section:AddKeybind(text, default, callback, flag)
 	return api
 end
 
--- DROPDOWN
 function Section:AddDropdown(text, options, default, callback, flag)
 	local flagName = flag
 	if type(default) == "table" then
@@ -2003,7 +1941,6 @@ function Section:AddDropdown(text, options, default, callback, flag)
 	return api
 end
 
--- MULTI-SELECT DROPDOWN
 function Section:AddMultiDropdown(text, options, defaults, callback, flag)
 	local flagName = flag
 	if type(defaults) == "table" and not defaults[1] and defaults.default then
@@ -2290,7 +2227,6 @@ function Section:AddMultiDropdown(text, options, defaults, callback, flag)
 	return api
 end
 
--- COLOR PICKER
 function Section:AddColorPicker(text, default, callback, flag)
 	local flagName = flag
 	if type(default) == "table" and not default.R then
@@ -2322,21 +2258,19 @@ function Section:AddColorPicker(text, default, callback, flag)
 	swatchStroke.Parent = swatch
 	themed(swatchStroke, "Color", "Stroke")
 
-	-- Floating popout panel
 	local panel = Utility.create("Frame", {
 		Size = UDim2.new(0, 180, 0, 205),
 		BackgroundColor3 = Theme.Elevated,
 		BorderSizePixel = 0,
 		Visible = false,
-		ZIndex = 9999, -- Render on top of everything in the ScreenGui
-		Parent = section.tab.window.screenGui, -- Parented directly to top ScreenGui
+		ZIndex = 9999,
+		Parent = section.tab.window.screenGui,
 	}, {Utility.corner(4), Utility.pad(10)})
 	themed(panel, "BackgroundColor3", "Elevated")
 	local panelStroke = Utility.create("UIStroke", {Color = Theme.Accent, Thickness = 1, Transparency = 0.4}, {})
 	panelStroke.Parent = panel
 	themed(panelStroke, "Color", "Accent")
 
-	-- Saturation/Value box
 	local svBox = Utility.create("Frame", {
 		Size = UDim2.new(1, 0, 0, 90),
 		BackgroundColor3 = default,
@@ -2371,7 +2305,6 @@ function Section:AddColorPicker(text, default, callback, flag)
 		BorderSizePixel = 0, ZIndex = 26, Parent = svBox,
 	}, {Utility.corner(4), Utility.create("UIStroke", {Color = Color3.new(0,0,0), Thickness = 1})})
 
-	-- Hue slider
 	local hueBar = Utility.create("Frame", {
 		Size = UDim2.new(1, 0, 0, 14), Position = UDim2.new(0, 0, 0, 100),
 		BorderSizePixel = 0, Parent = panel,
@@ -2394,7 +2327,6 @@ function Section:AddColorPicker(text, default, callback, flag)
 		BorderSizePixel = 0, ZIndex = 26, Parent = hueBar,
 	}, {Utility.corner(2)})
 
-	-- Input captures (Fixed drag bug)
 	local svCapture = Utility.create("TextButton", {
 		Size = UDim2.new(1, 0, 1, 0),
 		BackgroundTransparency = 1,
@@ -2411,7 +2343,6 @@ function Section:AddColorPicker(text, default, callback, flag)
 		Parent = hueBar,
 	})
 
-	-- RGB text box
 	local rgbInputHolder = Utility.create("Frame", {
 		Size = UDim2.new(1, 0, 0, 20),
 		Position = UDim2.new(0, 0, 0, 126),
@@ -2436,14 +2367,13 @@ function Section:AddColorPicker(text, default, callback, flag)
 	themed(rgbInput, "PlaceholderColor3", "SubText")
 	themed(rgbInput, "Font", "BodyFont")
 
-	-- Preset quick color circles
 	local presets = {
-		Color3.fromRGB(68, 90, 255),  -- Blue
-		Color3.fromRGB(156, 39, 176), -- Purple
-		Color3.fromRGB(33, 150, 243),  -- Cyan
-		Color3.fromRGB(76, 175, 80),   -- Green
-		Color3.fromRGB(244, 67, 54),   -- Red
-		Color3.fromRGB(255, 152, 0),   -- Orange
+		Color3.fromRGB(68, 90, 255),
+		Color3.fromRGB(156, 39, 176),
+		Color3.fromRGB(33, 150, 243),
+		Color3.fromRGB(76, 175, 80),
+		Color3.fromRGB(244, 67, 54),
+		Color3.fromRGB(255, 152, 0),
 	}
 
 	local presetsHolder = Utility.create("Frame", {
@@ -2493,7 +2423,6 @@ function Section:AddColorPicker(text, default, callback, flag)
 		end)
 	end
 
-	-- Initialize
 	local initR = math.round(default.R * 255)
 	local initG = math.round(default.G * 255)
 	local initB = math.round(default.B * 255)
@@ -2630,7 +2559,6 @@ function Section:AddColorPicker(text, default, callback, flag)
 	return api
 end
 
--- LABEL
 function Section:AddLabel(text)
 	local section = self
 	local labelFrame = Utility.create("Frame", {
@@ -2658,7 +2586,6 @@ function Section:AddLabel(text)
 	return api
 end
 
--- PARAGRAPH
 function Section:AddParagraph(title, desc)
 	local section = self
 	local para = Utility.create("Frame", {
@@ -2703,7 +2630,6 @@ function Section:AddParagraph(title, desc)
 	return api
 end
 
--- DIVIDER
 function Section:AddDivider()
 	local section = self
 	local div = Utility.create("Frame", {
@@ -2724,7 +2650,6 @@ function Section:AddDivider()
 	return div
 end
 
--- CONSOLE WIDGET
 function Section:AddConsole(height)
 	local section = self
 	height = height or 100
@@ -2793,7 +2718,6 @@ function Section:AddConsole(height)
 	return consoleApi
 end
 
--- GRAPH WIDGET
 function Section:AddGraph(title, minVal, maxVal, height)
 	local section = self
 	height = height or 60
