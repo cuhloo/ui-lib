@@ -346,11 +346,9 @@ function Zyren.new(options)
 		Position = UDim2.new(0.5, 0, 0.5, 0),
 		Size = UDim2.new(0, 540, 0, 420),
 		BackgroundColor3 = Theme.Background,
-		BackgroundTransparency = 0.1,
+		BackgroundTransparency = 0,
 		BorderSizePixel = 0,
 		Parent = screenGui,
-	}, {
-		Utility.corner(6),
 	})
 	themed(main, "BackgroundColor3", "Background")
 	local windowStroke = Utility.create("UIStroke", {Color = Theme.Accent, Thickness = 1, Transparency = 0.5}, {})
@@ -363,19 +361,11 @@ function Zyren.new(options)
 		BackgroundColor3 = Theme.Panel,
 		BorderSizePixel = 0,
 		Parent = main,
-	}, {
-		Utility.corner(6),
 	})
 	themed(topBar, "BackgroundColor3", "Panel")
 	
 
-	Utility.create("Frame", {
-		Size = UDim2.new(1, 0, 0, 8),
-		Position = UDim2.new(0, 0, 1, -8),
-		BackgroundColor3 = Theme.Panel,
-		BorderSizePixel = 0,
-		Parent = topBar,
-	})
+
 
 	local titleLabel = Utility.create("TextLabel", {
 		Text = title or "Zyren",
