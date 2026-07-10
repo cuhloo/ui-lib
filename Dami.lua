@@ -824,7 +824,7 @@ function Zyren:AddTab(name, options)
 
 	local indicator = Utility.create("Frame", {
 		Size = UDim2.new(1, 0, 0, 0),
-		Position = UDim2.new(0, 0, 0, 0),
+		Position = UDim2.new(0, 0, 1, -2),
 		BackgroundColor3 = Theme.Accent,
 		BorderSizePixel = 0,
 		Parent = button,
