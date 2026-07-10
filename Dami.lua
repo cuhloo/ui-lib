@@ -127,10 +127,20 @@ function Utility.tween(inst, props, duration, style, dir, key)
 	end
 
 	local info = TweenInfo.new(duration or 0.15, style or Enum.EasingStyle.Quad, dir or Enum.EasingDirection.Out)
-	local t = TweenService:Create(inst, info, props)
+	local t
+	pcall(function() t = TweenService:Create(inst, info, props) end)
 	if t then
 		bucket[key] = t
-		t:Play()
+		local success = pcall(function() t:Play() end)
+		if not success then
+			for k, v in pairs(props) do
+				pcall(function() inst[k] = v end)
+			end
+		end
+	else
+		for k, v in pairs(props) do
+			pcall(function() inst[k] = v end)
+		end
 	end
 	return t
 end
