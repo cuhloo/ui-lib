@@ -40,20 +40,20 @@ local PresetThemes = {
 }
 
 local Theme = {
-	Background = Color3.fromRGB(12, 12, 16),
-	Panel      = Color3.fromRGB(18, 18, 26),
-	Elevated   = Color3.fromRGB(26, 26, 38),
-	Stroke     = Color3.fromRGB(36, 36, 50),
-	HoverStroke = Color3.fromRGB(56, 56, 75),
-	Accent     = Color3.fromRGB(68, 90, 255),
-	AccentDim  = Color3.fromRGB(45, 60, 180),
-	Text       = Color3.fromRGB(230, 230, 230),
-	SubText    = Color3.fromRGB(130, 130, 150),
+	Background = Color3.fromRGB(11, 11, 11),
+	Panel      = Color3.fromRGB(15, 15, 15),
+	Elevated   = Color3.fromRGB(18, 18, 18),
+	Stroke     = Color3.fromRGB(35, 35, 35),
+	HoverStroke = Color3.fromRGB(65, 65, 65),
+	Accent     = Color3.fromRGB(134, 53, 255),
+	AccentDim  = Color3.fromRGB(90, 30, 180),
+	Text       = Color3.fromRGB(240, 240, 240),
+	SubText    = Color3.fromRGB(150, 150, 150),
 
-	TitleFont      = Enum.Font.GothamMedium,
-	BodyFont       = Enum.Font.Gotham,
-	BodyFontMedium = Enum.Font.GothamMedium,
-	BodyFontBold   = Enum.Font.GothamBold,
+	TitleFont      = Enum.Font.Code,
+	BodyFont       = Enum.Font.Code,
+	BodyFontMedium = Enum.Font.Code,
+	BodyFontBold   = Enum.Font.Code,
 }
 
 local ThemeRegistry = {}
@@ -238,8 +238,6 @@ local function card(height)
 		BackgroundColor3 = Theme.Elevated,
 		Size = UDim2.new(1, 0, 0, height or 30),
 		BorderSizePixel = 0,
-	}, {
-		Utility.corner(4),
 	})
 	themed(frame, "BackgroundColor3", "Elevated")
 	local stroke = Utility.create("UIStroke", {Color = Theme.Stroke, Thickness = 1}, {})
@@ -463,40 +461,54 @@ function Zyren.new(options)
 
 	Utility.drag(topBar, main)
 
-	local sidebarWidth = 48
-
-	local sidebar = Utility.create("Frame", {
-		Name = "Sidebar",
+	local tabBar = Utility.create("Frame", {
+		Name = "TabBar",
 		Position = UDim2.new(0, 0, 0, 32),
-		Size = UDim2.new(0, sidebarWidth, 1, -52),
-		BackgroundColor3 = Theme.Panel,
+		Size = UDim2.new(1, 0, 0, 26),
+		BackgroundColor3 = Theme.Background,
 		BorderSizePixel = 0,
 		Parent = main,
 	})
-	themed(sidebar, "BackgroundColor3", "Panel")
+	themed(tabBar, "BackgroundColor3", "Background")
+	
+	local tabLine = Utility.create("Frame", {
+		Size = UDim2.new(1, 0, 0, 1),
+		Position = UDim2.new(0, 0, 1, 0),
+		BackgroundColor3 = Theme.Stroke,
+		BorderSizePixel = 0,
+		Parent = tabBar,
+	})
+	themed(tabLine, "BackgroundColor3", "Stroke")
 
 	local tabList = Utility.create("ScrollingFrame", {
-		Size = UDim2.new(1, 0, 1, -10),
-		Position = UDim2.new(0, 0, 0, 10),
+		Size = UDim2.new(1, -12, 1, -1),
+		Position = UDim2.new(0, 6, 0, 0),
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 		ScrollBarThickness = 0,
 		CanvasSize = UDim2.new(0, 0, 0, 0),
-		AutomaticCanvasSize = Enum.AutomaticSize.Y,
-		Parent = sidebar,
+		AutomaticCanvasSize = Enum.AutomaticSize.X,
+		ScrollingDirection = Enum.ScrollingDirection.X,
+		Parent = tabBar,
 	}, {
 		Utility.create("UIListLayout", {
 			SortOrder = Enum.SortOrder.LayoutOrder,
-			Padding = UDim.new(0, 12),
-			HorizontalAlignment = Enum.HorizontalAlignment.Center
+			Padding = UDim.new(0, 2),
+			FillDirection = Enum.FillDirection.Horizontal,
+			HorizontalAlignment = Enum.HorizontalAlignment.Left,
+			VerticalAlignment = Enum.VerticalAlignment.Bottom,
 		}),
-		Utility.pad(0, 0, 8, 8),
 	})
+	
+	-- We need to update tabList CanvasSize dynamically
+	tabList.UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+		tabList.CanvasSize = UDim2.new(0, tabList.UIListLayout.AbsoluteContentSize.X, 0, 0)
+	end)
 
 	local pageContainer = Utility.create("Frame", {
 		Name = "Pages",
-		Position = UDim2.new(0, sidebarWidth, 0, 32),
-		Size = UDim2.new(1, -sidebarWidth, 1, -52),
+		Position = UDim2.new(0, 0, 0, 59),
+		Size = UDim2.new(1, 0, 1, -79),
 		BackgroundTransparency = 1,
 		Parent = main,
 	})
@@ -793,44 +805,38 @@ function Zyren:LoadConfig(name)
 end
 
 function Zyren:AddTab(name, options)
-	local icon = options and options.Icon or "rbxassetid://10747373176"
-
 	local button = Utility.create("TextButton", {
-		Text = "",
+		Text = name,
+		Font = Theme.BodyFont,
+		TextSize = 12,
+		TextColor3 = Theme.SubText,
 		AutoButtonColor = false,
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
-		Size = UDim2.new(0, 32, 0, 32),
+		Size = UDim2.new(0, 0, 1, 0),
+		AutomaticSize = Enum.AutomaticSize.X,
 		Parent = self.tabList,
-	}, {Utility.corner(4)})
+	}, {
+		Utility.pad(10, 10, 0, 0)
+	})
+	themed(button, "TextColor3", "SubText")
+	themed(button, "Font", "BodyFont")
 
 	local indicator = Utility.create("Frame", {
-		Size = UDim2.new(0, 2, 0, 0),
-		Position = UDim2.new(0, 0, 0.5, 0),
-		AnchorPoint = Vector2.new(0, 0.5),
+		Size = UDim2.new(1, 0, 0, 0),
+		Position = UDim2.new(0, 0, 0, 0),
 		BackgroundColor3 = Theme.Accent,
 		BorderSizePixel = 0,
 		Parent = button,
-	}, {Utility.corner(1)})
-	themed(indicator, "BackgroundColor3", "Accent")
-
-	local iconLabel = Utility.create("ImageLabel", {
-		Image = icon,
-		Size = UDim2.new(0, 16, 0, 16),
-		Position = UDim2.new(0.5, 0, 0.5, 0),
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		BackgroundTransparency = 1,
-		ImageColor3 = Theme.SubText,
-		Parent = button,
 	})
-	themed(iconLabel, "ImageColor3", "SubText")
+	themed(indicator, "BackgroundColor3", "Accent")
 
 	local function updateTabStyle()
 		local isActive = (self.activeTab == tab)
-		iconLabel.ImageColor3 = isActive and Theme.Text or Theme.SubText
-		Utility.tween(indicator, {Size = UDim2.new(0, 2, 0, isActive and 16 or 0)}, 0.1)
+		button.TextColor3 = isActive and Theme.Text or Theme.SubText
+		Utility.tween(indicator, {Size = UDim2.new(1, 0, 0, isActive and 2 or 0)}, 0.1)
 	end
-	themed(iconLabel, "ImageColor3", updateTabStyle)
+	themed(button, "TextColor3", updateTabStyle)
 
 	local pageWrapper = Utility.create("CanvasGroup", {
 		Size = UDim2.new(1, 0, 1, 0),
@@ -878,7 +884,6 @@ function Zyren:AddTab(name, options)
 	local tab = setmetatable({
 		window = self,
 		button = button,
-		iconLabel = iconLabel,
 		indicator = indicator,
 		page = page,
 		leftColumn = leftColumn,
@@ -963,7 +968,7 @@ function Zyren:SelectTab(tab)
 
 	for _, t in ipairs(self.tabs) do
 		local isActive = (t == tab)
-		t.iconLabel.ImageColor3 = isActive and Theme.Text or Theme.SubText
+		t.button.TextColor3 = isActive and Theme.Text or Theme.SubText
 	end
 end
 
@@ -1107,62 +1112,57 @@ function Tab:AddSection(name)
 		targetColumn = self.rightColumn
 	end
 
-	local container = Utility.create("CanvasGroup", {
+	local container = Utility.create("Frame", {
 		Size = UDim2.new(1, 0, 0, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
-		BackgroundColor3 = Theme.Panel,
-		BorderSizePixel = 0,
-		GroupTransparency = 1,
+		BackgroundTransparency = 1,
 		Parent = targetColumn,
 	}, {
-		Utility.corner(4),
-		Utility.pad(8, 8, 8, 8),
+		Utility.pad(8, 8, 12, 8),
 	})
-	themed(container, "BackgroundColor3", "Panel")
 
-	local stroke = Utility.create("UIStroke", {Color = Theme.Stroke, Thickness = 1}, {})
-	stroke.Parent = container
-	themed(stroke, "Color", "Stroke")
+	local border = Utility.create("Frame", {
+		Size = UDim2.new(1, 0, 1, 0),
+		Position = UDim2.new(0, 0, 0, 0),
+		BackgroundColor3 = Theme.Background,
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		ZIndex = 0,
+		Parent = container,
+	})
+	Utility.create("UIStroke", {Color = Theme.Stroke, Thickness = 1}, {}).Parent = border
+	themed(border.UIStroke, "Color", "Stroke")
 
 	local header = Utility.create("Frame", {
-		Size = UDim2.new(1, 0, 0, 16),
+		Size = UDim2.new(1, 0, 0, 0),
+		Position = UDim2.new(0, 8, 0, -5),
 		BackgroundTransparency = 1,
-		LayoutOrder = 1,
+		ZIndex = 2,
 		Parent = container,
 	})
 
 	local sectionLabel = Utility.create("TextLabel", {
-		Text = name,
-		Font = Theme.BodyFontMedium,
-		TextSize = 11,
+		Text = " " .. name .. " ",
+		Font = Theme.BodyFont,
+		TextSize = 12,
 		TextColor3 = Theme.Text,
-		BackgroundTransparency = 1,
-		Size = UDim2.new(1, -20, 1, 0),
+		BackgroundColor3 = Theme.Background,
+		BorderSizePixel = 0,
+		AutomaticSize = Enum.AutomaticSize.X,
+		Size = UDim2.new(0, 0, 0, 10),
+		Position = UDim2.new(0, 4, 0, 0),
 		TextXAlignment = Enum.TextXAlignment.Left,
 		Parent = header,
 	})
 	themed(sectionLabel, "TextColor3", "Text")
-	themed(sectionLabel, "Font", "BodyFontMedium")
-
-	local minButton = Utility.create("ImageButton", {
-		Name = "MinButton",
-		Size = UDim2.new(0, 12, 0, 12),
-		Position = UDim2.new(1, -2, 0.5, 0),
-		AnchorPoint = Vector2.new(1, 0.5),
-		BackgroundTransparency = 1,
-		Image = "rbxassetid://9801471573",
-		ImageColor3 = Theme.SubText,
-		Rotation = 90,
-		Parent = header,
-	})
-	themed(minButton, "ImageColor3", "SubText")
+	themed(sectionLabel, "BackgroundColor3", "Background")
+	themed(sectionLabel, "Font", "BodyFont")
 
 	local contentHolder = Utility.create("Frame", {
 		Name = "Content",
 		Size = UDim2.new(1, 0, 0, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
 		BackgroundTransparency = 1,
-		LayoutOrder = 2,
 		Parent = container,
 	}, {
 		Utility.create("UIListLayout", {
@@ -1181,14 +1181,7 @@ function Tab:AddSection(name)
 		tab = self,
 		container = container,
 		contentHolder = contentHolder,
-		minimized = false,
 	}, Section)
-
-	minButton.MouseButton1Click:Connect(function()
-		section.minimized = not section.minimized
-		contentHolder.Visible = not section.minimized
-		Utility.tween(minButton, {Rotation = section.minimized and 0 or 90}, 0.12)
-	end)
 
 	table.insert(self.sections, section)
 
@@ -1263,21 +1256,24 @@ function Section:AddToggle(text, default, callback, flag)
 	local track = Utility.create("Frame", {
 		AnchorPoint = Vector2.new(0, 0.5),
 		Position = UDim2.new(0, 8, 0.5, 0),
-		Size = UDim2.new(0, 14, 0, 14),
-		BackgroundColor3 = Theme.Panel,
+		Size = UDim2.new(0, 12, 0, 12),
+		BackgroundColor3 = Theme.Background,
 		BorderSizePixel = 0,
 		Parent = toggle,
-	}, {Utility.corner(2)})
+	})
 	local trackStroke = Utility.create("UIStroke", {Color = Theme.Stroke, Thickness = 1}, {})
 	trackStroke.Parent = track
 	themed(trackStroke, "Color", "Stroke")
 
-	local check = Utility.create("TextLabel", {
-		Text = "✓", Font = Theme.BodyFontBold, TextSize = 11, TextColor3 = Color3.fromRGB(255, 255, 255),
-		BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0),
-		TextXAlignment = Enum.TextXAlignment.Center, Visible = false,
+	local fill = Utility.create("Frame", {
+		Size = UDim2.new(1, -2, 1, -2),
+		Position = UDim2.new(0, 1, 0, 1),
+		BackgroundColor3 = Theme.Accent,
+		BorderSizePixel = 0,
+		BackgroundTransparency = 1,
 		Parent = track,
 	})
+	themed(fill, "BackgroundColor3", "Accent")
 
 	local label = Utility.create("TextLabel", {
 		Text = text,
@@ -1301,8 +1297,7 @@ function Section:AddToggle(text, default, callback, flag)
 	local state = defaultVal or false
 
 	local function updateToggleStyle()
-		track.BackgroundColor3 = state and Theme.Accent or Theme.Panel
-		check.Visible = state
+		Utility.tween(fill, {BackgroundTransparency = state and 0 or 1}, 0.1)
 	end
 	themed(track, "BackgroundColor3", updateToggleStyle)
 
@@ -1452,14 +1447,14 @@ function Section:AddSlider(text, min, max, default, options, callback)
 
 	local bar = Utility.create("Frame", {
 		Position = UDim2.new(0, 8, 0, 22), Size = UDim2.new(1, -16, 0, 4),
-		BackgroundColor3 = Theme.Stroke, BorderSizePixel = 0, Parent = slider,
-	}, {Utility.corner(2)})
-	themed(bar, "BackgroundColor3", "Stroke")
+		BackgroundColor3 = Theme.Background, BorderSizePixel = 0, Parent = slider,
+	})
+	Utility.create("UIStroke", {Color = Theme.Stroke, Thickness = 1}, {}).Parent = bar
 
 	local fill = Utility.create("Frame", {
 		Size = UDim2.new((max - min) > 0 and ((value - min) / (max - min)) or 0, 0, 1, 0),
 		BackgroundColor3 = Theme.Accent, BorderSizePixel = 0, Parent = bar,
-	}, {Utility.corner(2)})
+	})
 	themed(fill, "BackgroundColor3", "Accent")
 
 	local dragButton = Utility.create("TextButton", {
@@ -1562,10 +1557,10 @@ function Section:AddTextbox(text, placeholder, callback, flag)
 
 	local inputHolder = Utility.create("Frame", {
 		AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -8, 0.5, 0),
-		Size = UDim2.new(0.5, -8, 0, 18), BackgroundColor3 = Theme.Panel,
+		Size = UDim2.new(0.5, -8, 0, 18), BackgroundColor3 = Theme.Background,
 		BorderSizePixel = 0, Parent = box,
-	}, {Utility.corner(2)})
-	themed(inputHolder, "BackgroundColor3", "Panel")
+	})
+	themed(inputHolder, "BackgroundColor3", "Background")
 	local inputStroke = Utility.create("UIStroke", {Color = Theme.Stroke, Thickness = 1}, {})
 	inputStroke.Parent = inputHolder
 	themed(inputStroke, "Color", "Stroke")
@@ -2515,13 +2510,18 @@ function Section:AddColorPicker(text, default, callback, flag)
 		end
 	end)
 
-	local visibilityConn = swatch:GetPropertyChangedSignal("AbsoluteVisible"):Connect(function()
-		if not swatch.AbsoluteVisible then
-			open = false
-			panel.Visible = false
-		end
+	local visibilityConn
+	pcall(function()
+		visibilityConn = swatch:GetPropertyChangedSignal("AbsoluteVisible"):Connect(function()
+			if not swatch.AbsoluteVisible then
+				open = false
+				panel.Visible = false
+			end
+		end)
 	end)
-	section.tab.window:RegisterConnection(visibilityConn)
+	if visibilityConn then
+		section.tab.window:RegisterConnection(visibilityConn)
+	end
 
 	local api = {
 		instance = picker,
