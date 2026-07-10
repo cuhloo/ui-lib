@@ -1112,34 +1112,23 @@ function Tab:AddSection(name)
 		targetColumn = self.rightColumn
 	end
 
-	local container = Utility.create("Frame", {
+	local sectionWrapper = Utility.create("Frame", {
 		Size = UDim2.new(1, 0, 0, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
 		BackgroundTransparency = 1,
 		Parent = targetColumn,
-	}, {
-		Utility.pad(8, 8, 12, 8),
 	})
 
-	local border = Utility.create("Frame", {
-		Size = UDim2.new(1, 0, 1, 0),
-		Position = UDim2.new(0, 0, 0, 0),
-		BackgroundColor3 = Theme.Background,
-		BackgroundTransparency = 1,
-		BorderSizePixel = 0,
-		ZIndex = 0,
-		Parent = container,
-	})
-	Utility.create("UIStroke", {Color = Theme.Stroke, Thickness = 1}, {}).Parent = border
-	themed(border.UIStroke, "Color", "Stroke")
-
-	local header = Utility.create("Frame", {
+	local container = Utility.create("Frame", {
 		Size = UDim2.new(1, 0, 0, 0),
-		Position = UDim2.new(0, 8, 0, -5),
+		Position = UDim2.new(0, 0, 0, 6),
+		AutomaticSize = Enum.AutomaticSize.Y,
 		BackgroundTransparency = 1,
-		ZIndex = 2,
-		Parent = container,
+		Parent = sectionWrapper,
 	})
+	local stroke = Utility.create("UIStroke", {Color = Theme.Stroke, Thickness = 1}, {})
+	stroke.Parent = container
+	themed(stroke, "Color", "Stroke")
 
 	local sectionLabel = Utility.create("TextLabel", {
 		Text = " " .. name .. " ",
@@ -1150,9 +1139,10 @@ function Tab:AddSection(name)
 		BorderSizePixel = 0,
 		AutomaticSize = Enum.AutomaticSize.X,
 		Size = UDim2.new(0, 0, 0, 10),
-		Position = UDim2.new(0, 4, 0, 0),
+		Position = UDim2.new(0, 12, 0, 1),
+		ZIndex = 2,
 		TextXAlignment = Enum.TextXAlignment.Left,
-		Parent = header,
+		Parent = sectionWrapper,
 	})
 	themed(sectionLabel, "TextColor3", "Text")
 	themed(sectionLabel, "BackgroundColor3", "Background")
@@ -1165,17 +1155,14 @@ function Tab:AddSection(name)
 		BackgroundTransparency = 1,
 		Parent = container,
 	}, {
+		Utility.pad(8, 8, 12, 8),
 		Utility.create("UIListLayout", {
 			SortOrder = Enum.SortOrder.LayoutOrder,
 			Padding = UDim.new(0, 6),
-		}),
-		Utility.pad(0, 0, 6, 0),
+		})
 	})
 
-	Utility.create("UIListLayout", {
-		SortOrder = Enum.SortOrder.LayoutOrder,
-		Padding = UDim.new(0, 0),
-	}).Parent = container
+
 
 	local section = setmetatable({
 		tab = self,
