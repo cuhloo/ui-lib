@@ -833,7 +833,11 @@ function Zyren:AddTab(name, options)
 		button.TextColor3 = isActive and Theme.Text or Theme.SubText
 		local ind = indicator or button:FindFirstChild("Indicator")
 		if ind then
-			Utility.tween(ind, {Size = UDim2.new(1, 0, 0, isActive and 2 or 0)}, 0.1)
+			if not tab then
+				ind.Size = UDim2.new(1, 0, 0, isActive and 2 or 0)
+			else
+				Utility.tween(ind, {Size = UDim2.new(1, 0, 0, isActive and 2 or 0)}, 0.1)
+			end
 		end
 	end
 	themed(button, "TextColor3", updateTabStyle)
