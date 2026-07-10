@@ -115,6 +115,7 @@ end
 local ActiveTweens = setmetatable({}, {__mode = "k"})
 
 function Utility.tween(inst, props, duration, style, dir, key)
+	if not inst then return end
 	key = key or "_default"
 	local bucket = ActiveTweens[inst]
 	if not bucket then
@@ -127,8 +128,10 @@ function Utility.tween(inst, props, duration, style, dir, key)
 
 	local info = TweenInfo.new(duration or 0.15, style or Enum.EasingStyle.Quad, dir or Enum.EasingDirection.Out)
 	local t = TweenService:Create(inst, info, props)
-	bucket[key] = t
-	t:Play()
+	if t then
+		bucket[key] = t
+		t:Play()
+	end
 	return t
 end
 
@@ -813,6 +816,7 @@ function Zyren:AddTab(name, options)
 	themed(button, "Font", "BodyFont")
 
 	local indicator = Utility.create("Frame", {
+		Name = "Indicator",
 		Size = UDim2.new(1, 0, 0, 0),
 		Position = UDim2.new(0, 0, 1, -2),
 		BackgroundColor3 = Theme.Accent,
@@ -822,9 +826,15 @@ function Zyren:AddTab(name, options)
 	themed(indicator, "BackgroundColor3", "Accent")
 
 	local function updateTabStyle()
-		local isActive = (self.activeTab == tab)
+		local isActive = false
+		if tab then
+			isActive = (self.activeTab == tab)
+		end
 		button.TextColor3 = isActive and Theme.Text or Theme.SubText
-		Utility.tween(indicator, {Size = UDim2.new(1, 0, 0, isActive and 2 or 0)}, 0.1)
+		local ind = indicator or button:FindFirstChild("Indicator")
+		if ind then
+			Utility.tween(ind, {Size = UDim2.new(1, 0, 0, isActive and 2 or 0)}, 0.1)
+		end
 	end
 	themed(button, "TextColor3", updateTabStyle)
 
