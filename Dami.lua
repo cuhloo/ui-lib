@@ -898,50 +898,16 @@ function Zyren:AddTab(name, options)
 	return tab
 end
 
-local SECTION_PAD_TOP = 14
-local SECTION_PAD_TOP_START = SECTION_PAD_TOP + 12
-
-local function revealSection(section, index)
-	local container = section.container
-	task.delay((index - 1) * 0.03, function()
-		if container and container.Parent then
-			Utility.tween(container, {GroupTransparency = 0}, 0.15)
-			if container:FindFirstChildOfClass("UIPadding") then
-				Utility.tween(container.UIPadding, {PaddingTop = UDim.new(0, SECTION_PAD_TOP)}, 0.15)
-			end
-		end
-	end)
-end
-
-local function revealAllSections(tab)
-	for i, section in ipairs(tab.sections) do
-		revealSection(section, i)
-	end
-end
-
-local function hideAllSectionsInstant(tab)
-	for _, section in ipairs(tab.sections) do
-		local container = section.container
-		if container and container.Parent then
-			container.GroupTransparency = 1
-			if container:FindFirstChildOfClass("UIPadding") then
-				container.UIPadding.PaddingTop = UDim.new(0, SECTION_PAD_TOP_START)
-			end
-		end
-	end
-end
-
 function Zyren:SelectTab(tab)
 	if self.activeTab == tab then return end
 
 	if self.activeTab then
 		local old = self.activeTab
-		Utility.tween(old.indicator, {Size = UDim2.new(0, 2, 0, 0)}, 0.15)
+		Utility.tween(old.indicator, {Size = UDim2.new(1, 0, 0, 0)}, 0.15)
 		Utility.tween(old.pageWrapper, {GroupTransparency = 1, Position = UDim2.new(0, -12, 0, 0)}, 0.15)
 		task.delay(0.15, function()
 			if self.activeTab ~= old then
 				old.pageWrapper.Visible = false
-				hideAllSectionsInstant(old)
 			end
 		end)
 	end
@@ -950,11 +916,9 @@ function Zyren:SelectTab(tab)
 	tab.pageWrapper.Visible = true
 	Utility.tween(tab.pageWrapper, {GroupTransparency = 0, Position = UDim2.new(0, 0, 0, 0)}, 0.15)
 	
-	Utility.tween(tab.indicator, {Size = UDim2.new(0, 2, 0, 16)}, 0.15)
-	revealAllSections(tab)
+	Utility.tween(tab.indicator, {Size = UDim2.new(1, 0, 0, 2)}, 0.15)
 
 	self.activeTab = tab
-	
 
 	for _, t in ipairs(self.tabs) do
 		local isActive = (t == tab)
