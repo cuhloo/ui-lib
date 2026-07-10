@@ -1151,7 +1151,7 @@ function Tab:AddSection(name)
 	table.insert(self.sections, section)
 
 	if self.window.activeTab == self then
-		revealSection(section, #self.sections)
+		-- revealSection is undefined and causes a crash. The section is visible by default anyway.
 	end
 
 	return section
