@@ -5,6 +5,10 @@ local RunService = game:GetService("RunService")
 local HttpService = game:GetService("HttpService")
 
 local Player = Players.LocalPlayer
+while not Player do
+	task.wait(0.1)
+	Player = Players.LocalPlayer
+end
 
 -- ============================================================================
 -- THEME & DESIGN SYSTEM (ROSAVA DESIGN SYSTEM)
@@ -233,16 +237,21 @@ end
 local KeySystemUrl = "https://dami.lol"
 
 local function getClipboard()
-	if getclipboard then return getclipboard() end
-	if toclipboard then return toclipboard() end
-	return ""
+	local success, val = pcall(function()
+		if getclipboard then return getclipboard() end
+		if toclipboard then return toclipboard() end
+		return ""
+	end)
+	return success and val or ""
 end
 
 local function setClipboard(text)
-	if setclipboard then setclipboard(text)
-	elseif toclipboard then toclipboard(text)
-	elseif syn and syn.write_clipboard then syn.write_clipboard(text)
-	end
+	pcall(function()
+		if setclipboard then setclipboard(text)
+		elseif toclipboard then toclipboard(text)
+		elseif syn and syn.write_clipboard then syn.write_clipboard(text)
+		end
+	end)
 end
 
 local function verifyKey(key)
@@ -250,8 +259,10 @@ local function verifyKey(key)
 		return game:HttpGet(KeySystemUrl .. "/api/verify?key=" .. HttpService:UrlEncode(key))
 	end)
 	if success and result then
-		local data = HttpService:JSONDecode(result)
-		if data and data.valid then
+		local decodeSuccess, data = pcall(function()
+			return HttpService:JSONDecode(result)
+		end)
+		if decodeSuccess and data and data.valid then
 			return true
 		end
 	end
@@ -277,14 +288,23 @@ function Zyren.new(options)
 		ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
 	})
 
+	local targetParent
 	if gethui then
-		screenGui.Parent = gethui()
-	elseif syn and syn.protect_gui then
-		syn.protect_gui(screenGui)
-		screenGui.Parent = Player:WaitForChild("PlayerGui")
-	else
-		screenGui.Parent = Player:WaitForChild("PlayerGui")
+		local ok, res = pcall(gethui)
+		if ok and res then
+			targetParent = res
+		end
 	end
+	if not targetParent then
+		local coreGui = pcall(game.GetService, game, "CoreGui")
+		if coreGui then
+			targetParent = game:GetService("CoreGui")
+		end
+	end
+	if not targetParent then
+		targetParent = Player:WaitForChild("PlayerGui", 5) or Player:FindFirstChildOfClass("PlayerGui")
+	end
+	screenGui.Parent = targetParent
 
 	-- Tooltip frame
 	local toolTip = Utility.create("Frame", {
@@ -551,7 +571,7 @@ function Zyren.new(options)
 		Position = UDim2.new(0, 10, 0, 0),
 		TextXAlignment = Enum.TextXAlignment.Left,
 		ClearTextOnFocus = false,
-		Parent = searchInput,
+		Parent = searchHolder,
 	})
 	themed(searchInput, "TextColor3", "Text")
 	themed(searchInput, "PlaceholderColor3", "SubText")
