@@ -286,6 +286,7 @@ function Zyren.new(options)
 		Name = title or "Zyren",
 		ResetOnSpawn = false,
 		ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+		IgnoreGuiInset = true,
 	})
 
 	local targetParent
@@ -346,6 +347,7 @@ function Zyren.new(options)
 	-- ============================================================================
 	-- MAIN OVERHAULED GUI WINDOW
 	-- ============================================================================
+	local windowStroke = Utility.create("UIStroke", {Color = Theme.Accent, Thickness = 2, Transparency = 0.2})
 	local main = Utility.create("Frame", {
 		Name = "Main",
 		AnchorPoint = Vector2.new(0.5, 0.5),
@@ -356,13 +358,43 @@ function Zyren.new(options)
 		Visible = false, -- Shown only after Key passes
 		Parent = screenGui,
 	}, {
-		Utility.corner(16)
+		Utility.corner(16),
+		windowStroke,
+		Utility.create("UIGradient", {
+			Color = ColorSequence.new({
+				ColorSequenceKeypoint.new(0, Theme.Background),
+				ColorSequenceKeypoint.new(1, Color3.fromRGB(18, 14, 16))
+			}),
+			Rotation = 45
+		}),
+		-- Solid top highlight header bar
+		Utility.create("Frame", {
+			Size = UDim2.new(1, 0, 0, 3),
+			Position = UDim2.new(0, 0, 0, 0),
+			BackgroundColor3 = Theme.Accent,
+			BorderSizePixel = 0,
+			ZIndex = 6,
+		}, {
+			Utility.corner(16)
+		})
 	})
 	themed(main, "BackgroundColor3", "Background")
-	
-	local windowStroke = Utility.create("UIStroke", {Color = Theme.Stroke, Thickness = 1, Transparency = 0.2}, {})
-	windowStroke.Parent = main
-	themed(windowStroke, "Color", "Stroke")
+	themed(windowStroke, "Color", "Accent")
+
+	-- Pulsing glow animation for main window border
+	task.spawn(function()
+		while task.wait(2) do
+			if not main.Parent then break end
+			if main.Visible then
+				Utility.tween(windowStroke, {Color = Theme.Accent, Thickness = 2.5, Transparency = 0.1}, 1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+				task.wait(1)
+				if not main.Parent then break end
+				Utility.tween(windowStroke, {Color = Theme.AccentDim or Theme.Stroke, Thickness = 1.5, Transparency = 0.4}, 1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+			else
+				task.wait(1)
+			end
+		end
+	end)
 
 	-- SIDEBAR
 	local sidebar = Utility.create("Frame", {
@@ -544,7 +576,7 @@ function Zyren.new(options)
 	local discordIcon = Utility.create("ImageLabel", {
 		Size = UDim2.new(0, 16, 0, 16),
 		Position = UDim2.new(0.5, -8, 0.5, -8),
-		Image = "rbxassetid://6031466847", -- Discord logo
+		Image = "rbxassetid://15654483786", -- Discord logo
 		BackgroundTransparency = 1,
 		ZIndex = 5,
 	})
@@ -577,7 +609,7 @@ function Zyren.new(options)
 	local minimizeIcon = Utility.create("ImageLabel", {
 		Size = UDim2.new(0, 14, 0, 14),
 		Position = UDim2.new(0.5, -7, 0.5, -7),
-		Image = "rbxassetid://6023426917", -- Minus icon
+		Image = "rbxassetid://15132644211", -- Minus icon
 		BackgroundTransparency = 1,
 		ZIndex = 5,
 	})
@@ -838,7 +870,24 @@ function Zyren.new(options)
 		Parent = keySystemFrame,
 	}, {
 		Utility.corner(12),
-		keyStroke
+		keyStroke,
+		Utility.create("UIGradient", {
+			Color = ColorSequence.new({
+				ColorSequenceKeypoint.new(0, Theme.Panel),
+				ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 12, 14))
+			}),
+			Rotation = 45
+		}),
+		-- Top accent highlight line
+		Utility.create("Frame", {
+			Size = UDim2.new(1, 0, 0, 3),
+			Position = UDim2.new(0, 0, 0, 0),
+			BackgroundColor3 = Theme.Accent,
+			BorderSizePixel = 0,
+			ZIndex = 6,
+		}, {
+			Utility.corner(12)
+		})
 	})
 	themed(keyCard, "BackgroundColor3", "Panel")
 	themed(keyStroke, "Color", "Accent")
@@ -922,6 +971,13 @@ function Zyren.new(options)
 	themed(keyTextBox, "TextColor3", "Text")
 	themed(keyTextBox, "PlaceholderColor3", "SubText")
 	themed(keyTextBox, "Font", "BodyFont")
+
+	keyTextBox.Focused:Connect(function()
+		Utility.tween(keyInputWrapper.UIStroke, {Color = Theme.Accent}, 0.25)
+	end)
+	keyTextBox.FocusLost:Connect(function()
+		Utility.tween(keyInputWrapper.UIStroke, {Color = Theme.Stroke}, 0.25)
+	end)
 
 	-- Button Group
 	local buttonGroup = Utility.create("Frame", {
