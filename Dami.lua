@@ -197,6 +197,15 @@ local function card(height)
 		BackgroundColor3 = Theme.Elevated,
 		Size = UDim2.new(1, 0, 0, height or 30),
 		BorderSizePixel = 0,
+	}, {
+		Utility.corner(6),
+		Utility.create("UIGradient", {
+			Color = ColorSequence.new({
+				ColorSequenceKeypoint.new(0, Theme.Elevated),
+				ColorSequenceKeypoint.new(1, Theme.Panel)
+			}),
+			Rotation = 90
+		})
 	})
 	themed(frame, "BackgroundColor3", "Elevated")
 	local stroke = Utility.create("UIStroke", {Color = Theme.Stroke, Thickness = 1}, {})
@@ -362,8 +371,8 @@ function Zyren.new(options)
 		windowStroke,
 		Utility.create("UIGradient", {
 			Color = ColorSequence.new({
-				ColorSequenceKeypoint.new(0, Theme.Background),
-				ColorSequenceKeypoint.new(1, Color3.fromRGB(18, 14, 16))
+				ColorSequenceKeypoint.new(0, Color3.fromRGB(10, 8, 10)),
+				ColorSequenceKeypoint.new(1, Color3.fromRGB(24, 18, 22))
 			}),
 			Rotation = 45
 		}),
@@ -404,7 +413,14 @@ function Zyren.new(options)
 		BorderSizePixel = 0,
 		Parent = main,
 	}, {
-		Utility.corner(16)
+		Utility.corner(16),
+		Utility.create("UIGradient", {
+			Color = ColorSequence.new({
+				ColorSequenceKeypoint.new(0, Theme.Sidebar),
+				ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 12, 14))
+			}),
+			Rotation = 90
+		})
 	})
 	themed(sidebar, "BackgroundColor3", "Sidebar")
 
@@ -573,14 +589,17 @@ function Zyren.new(options)
 	themed(userUsername, "Font", "BodyFont")
 
 	-- Header Buttons (Discord, Minimize & Close)
-	local discordIcon = Utility.create("ImageLabel", {
-		Size = UDim2.new(0, 16, 0, 16),
-		Position = UDim2.new(0.5, -8, 0.5, -8),
-		Image = "rbxassetid://15654483786", -- Discord logo
+	local discordIcon = Utility.create("TextLabel", {
+		Size = UDim2.new(1, 0, 1, 0),
+		Text = "D",
+		Font = Theme.TitleFont,
+		TextSize = 14,
+		TextColor3 = Theme.Text,
 		BackgroundTransparency = 1,
 		ZIndex = 5,
 	})
-	themed(discordIcon, "ImageColor3", "Text")
+	themed(discordIcon, "TextColor3", "Text")
+	themed(discordIcon, "Font", "TitleFont")
 
 	local discordBtn = Utility.create("TextButton", {
 		Name = "DiscordBtn",
@@ -606,14 +625,17 @@ function Zyren.new(options)
 		})
 	end)
 
-	local minimizeIcon = Utility.create("ImageLabel", {
-		Size = UDim2.new(0, 14, 0, 14),
-		Position = UDim2.new(0.5, -7, 0.5, -7),
-		Image = "rbxassetid://15132644211", -- Minus icon
+	local minimizeIcon = Utility.create("TextLabel", {
+		Size = UDim2.new(1, 0, 1, 0),
+		Text = "—",
+		Font = Theme.BodyFontBold,
+		TextSize = 14,
+		TextColor3 = Theme.Text,
 		BackgroundTransparency = 1,
 		ZIndex = 5,
 	})
-	themed(minimizeIcon, "ImageColor3", "Text")
+	themed(minimizeIcon, "TextColor3", "Text")
+	themed(minimizeIcon, "Font", "BodyFontBold")
 
 	local minimizeButton = Utility.create("TextButton", {
 		Name = "MinBtn",
@@ -1319,6 +1341,17 @@ function Zyren:AddTab(name, options)
 	local tabIconId = options and options.Icon or "rbxassetid://10734950309"
 
 	-- Vertical Sidebar Button
+	local indicator = Utility.create("Frame", {
+		Name = "Indicator",
+		Size = UDim2.new(0, 3, 1, -8),
+		Position = UDim2.new(0, 4, 0, 4),
+		BackgroundColor3 = Theme.Accent,
+		BorderSizePixel = 0,
+		Visible = false,
+	}, {
+		Utility.corner(1.5)
+	})
+
 	local button = Utility.create("TextButton", {
 		Text = "         " .. name, -- Offset for Icon
 		Font = Theme.BodyFontMedium,
@@ -1340,11 +1373,13 @@ function Zyren:AddTab(name, options)
 			Image = tabIconId,
 			BackgroundTransparency = 1,
 			ImageColor3 = Theme.SubText,
-		})
+		}),
+		indicator
 	})
 	themed(button, "TextColor3", "SubText")
 	themed(button, "Font", "BodyFontMedium")
 	themed(button.Icon, "ImageColor3", "SubText")
+	themed(indicator, "BackgroundColor3", "Accent")
 
 	local page = Utility.create("ScrollingFrame", {
 		Size = UDim2.new(1, -20, 1, -20),
@@ -1413,13 +1448,19 @@ function Zyren:SelectTab(tab)
 		old.button.BackgroundTransparency = 1
 		old.button.TextColor3 = Theme.SubText
 		old.button.Icon.ImageColor3 = Theme.SubText
+		if old.button:FindFirstChild("Indicator") then
+			old.button.Indicator.Visible = false
+		end
 	end
 
 	tab.page.Visible = true
-	tab.button.BackgroundTransparency = 0
-	tab.button.BackgroundColor3 = Theme.Accent
+	tab.button.BackgroundTransparency = 0.5
+	tab.button.BackgroundColor3 = Theme.Panel
 	tab.button.TextColor3 = Color3.fromRGB(255, 255, 255)
-	tab.button.Icon.ImageColor3 = Color3.fromRGB(255, 255, 255)
+	tab.button.Icon.ImageColor3 = Theme.Accent
+	if tab.button:FindFirstChild("Indicator") then
+		tab.button.Indicator.Visible = true
+	end
 
 	self.activeTab = tab
 end
