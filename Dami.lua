@@ -14,16 +14,16 @@ end
 -- THEME & DESIGN SYSTEM (ROSAVA DESIGN SYSTEM)
 -- ============================================================================
 local Theme = {
-	Background = Color3.fromRGB(30, 24, 28),     -- Dark Maroon Background
-	Sidebar    = Color3.fromRGB(24, 18, 22),     -- Darker Sidebar
-	Panel      = Color3.fromRGB(42, 32, 39),     -- Card Panel / Section Cards
-	Elevated   = Color3.fromRGB(54, 40, 50),     -- Interactive elements
-	Stroke     = Color3.fromRGB(68, 48, 60),     -- Muted Borders
+	Background = Color3.fromRGB(20, 16, 19),     -- Deeper Dark Maroon
+	Sidebar    = Color3.fromRGB(15, 12, 14),     -- Soft Velvet Dark Sidebar
+	Panel      = Color3.fromRGB(26, 20, 24),     -- Dark Plum Panel Card
+	Elevated   = Color3.fromRGB(32, 25, 30),     -- Muted Plum Element Background
+	Stroke     = Color3.fromRGB(45, 36, 42),     -- Very Soft Border Outline
 	HoverStroke = Color3.fromRGB(152, 60, 80),   -- Vibrant Rose Red (Hover/Active)
 	Accent     = Color3.fromRGB(152, 60, 80),     -- Rose Accent
-	AccentDim  = Color3.fromRGB(110, 40, 56),     -- Darker Rose
+	AccentDim  = Color3.fromRGB(100, 36, 50),     -- Darker Rose Accent
 	Text       = Color3.fromRGB(245, 230, 235),   -- Off-white Cream Text
-	SubText    = Color3.fromRGB(180, 150, 160),   -- Muted Pinkish Text
+	SubText    = Color3.fromRGB(165, 140, 148),   -- Soft Muted Pinkish Text
 
 	TitleFont      = Enum.Font.GothamBold,
 	BodyFont       = Enum.Font.Gotham,
@@ -82,7 +82,11 @@ function Utility.tween(inst, props, duration, style, dir, key)
 	if not bucket then bucket = {}; ActiveTweens[inst] = bucket end
 	if bucket[key] then bucket[key]:Cancel() end
 
-	local info = TweenInfo.new(duration or 0.15, style or Enum.EasingStyle.Quad, dir or Enum.EasingDirection.Out)
+	local info = TweenInfo.new(
+		duration or 0.15,
+		style or Enum.EasingStyle.Quart,
+		dir or Enum.EasingDirection.Out
+	)
 	local t
 	pcall(function() t = TweenService:Create(inst, info, props) end)
 	if t then
@@ -97,18 +101,47 @@ function Utility.tween(inst, props, duration, style, dir, key)
 	return t
 end
 
+-- Snappy press scaling effect for touch/click interaction
+function Utility.pressEffect(trigger, scaleObj)
+	local scale = scaleObj or trigger:FindFirstChildOfClass("UIScale")
+	if not scale then
+		scale = Utility.create("UIScale", {Scale = 1})
+		scale.Parent = trigger
+	end
+	
+	trigger.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			Utility.tween(scale, {Scale = 0.95}, 0.1, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+		end
+	end)
+	trigger.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			Utility.tween(scale, {Scale = 1}, 0.15, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+		end
+	end)
+end
+
 function Utility.hoverGlow(trigger, stroke, options)
 	options = options or {}
 	local hoverThickness = options.hoverThickness or 1.2
 	local restThickness = options.restThickness or 1
 	local hoverKey = options.hoverKey or "HoverStroke"
 	local restKey = options.restKey or "Stroke"
+	
+	local originalColor = trigger.BackgroundColor3
+	local hoverColor = Color3.fromRGB(
+		math.min(originalColor.R * 255 + 6, 255),
+		math.min(originalColor.G * 255 + 5, 255),
+		math.min(originalColor.B * 255 + 6, 255)
+	)
 
 	trigger.MouseEnter:Connect(function()
-		Utility.tween(stroke, {Color = Theme[hoverKey], Thickness = hoverThickness}, 0.1, nil, nil, "glow")
+		Utility.tween(stroke, {Color = Theme[hoverKey], Thickness = hoverThickness}, 0.15, Enum.EasingStyle.Quint, Enum.EasingDirection.Out, "glow")
+		Utility.tween(trigger, {BackgroundColor3 = hoverColor}, 0.15, Enum.EasingStyle.Quint, Enum.EasingDirection.Out, "bg")
 	end)
 	trigger.MouseLeave:Connect(function()
-		Utility.tween(stroke, {Color = Theme[restKey], Thickness = restThickness}, 0.1, nil, nil, "glow")
+		Utility.tween(stroke, {Color = Theme[restKey], Thickness = restThickness}, 0.15, Enum.EasingStyle.Quint, Enum.EasingDirection.Out, "glow")
+		Utility.tween(trigger, {BackgroundColor3 = originalColor}, 0.15, Enum.EasingStyle.Quint, Enum.EasingDirection.Out, "bg")
 	end)
 end
 
@@ -208,7 +241,7 @@ local function card(height)
 		})
 	})
 	themed(frame, "BackgroundColor3", "Elevated")
-	local stroke = Utility.create("UIStroke", {Color = Theme.Stroke, Thickness = 1}, {})
+	local stroke = Utility.create("UIStroke", {Color = Theme.Stroke, Thickness = 1, Transparency = 0.5}, {})
 	stroke.Parent = frame
 	themed(stroke, "Color", "Stroke")
 	Utility.hoverGlow(frame, stroke)
@@ -357,6 +390,7 @@ function Zyren.new(options)
 	-- MAIN OVERHAULED GUI WINDOW
 	-- ============================================================================
 	local windowStroke = Utility.create("UIStroke", {Color = Theme.Accent, Thickness = 2, Transparency = 0.2})
+	local mainScale = Utility.create("UIScale", {Scale = 1})
 	local main = Utility.create("Frame", {
 		Name = "Main",
 		AnchorPoint = Vector2.new(0.5, 0.5),
@@ -369,6 +403,7 @@ function Zyren.new(options)
 	}, {
 		Utility.corner(16),
 		windowStroke,
+		mainScale,
 		Utility.create("UIGradient", {
 			Color = ColorSequence.new({
 				ColorSequenceKeypoint.new(0, Color3.fromRGB(10, 8, 10)),
@@ -376,19 +411,52 @@ function Zyren.new(options)
 			}),
 			Rotation = 45
 		}),
-		-- Solid top highlight header bar
+		-- Glowing top highlight header bar
 		Utility.create("Frame", {
-			Size = UDim2.new(1, 0, 0, 3),
+			Size = UDim2.new(1, 0, 0, 4),
 			Position = UDim2.new(0, 0, 0, 0),
 			BackgroundColor3 = Theme.Accent,
 			BorderSizePixel = 0,
 			ZIndex = 6,
 		}, {
-			Utility.corner(16)
+			Utility.corner(16),
+			Utility.create("UIStroke", {
+				Color = Theme.Accent,
+				Thickness = 2.5,
+				Transparency = 0.35,
+			}),
+			Utility.create("UIGradient", {
+				Color = ColorSequence.new({
+					ColorSequenceKeypoint.new(0, Theme.AccentDim),
+					ColorSequenceKeypoint.new(0.5, Theme.Accent),
+					ColorSequenceKeypoint.new(1, Theme.AccentDim)
+				})
+			})
 		})
 	})
 	themed(main, "BackgroundColor3", "Background")
 	themed(windowStroke, "Color", "Accent")
+
+	local function showWindow()
+		main.Visible = true
+		toggleButton.Visible = false
+		mainScale.Scale = 0.8
+		Utility.tween(mainScale, {Scale = 1}, 0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+	end
+
+	local function hideWindow()
+		toggleButton.Visible = true
+		local t = Utility.tween(mainScale, {Scale = 0.8}, 0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+		if t then
+			local conn
+			conn = t.Completed:Connect(function()
+				main.Visible = false
+				conn:Disconnect()
+			end)
+		else
+			main.Visible = false
+		end
+	end
 
 	-- Pulsing glow animation for main window border
 	task.spawn(function()
@@ -514,8 +582,7 @@ function Zyren.new(options)
 	Utility.drag(toggleButton, toggleButton)
 
 	toggleButton.MouseButton1Click:Connect(function()
-		main.Visible = true
-		toggleButton.Visible = false
+		showWindow()
 	end)
 
 	-- Keyboard toggle listener
@@ -523,11 +590,9 @@ function Zyren.new(options)
 		if processed then return end
 		if input.KeyCode == Enum.KeyCode.RightShift then
 			if main.Visible then
-				main.Visible = false
-				toggleButton.Visible = true
+				hideWindow()
 			else
-				main.Visible = true
-				toggleButton.Visible = false
+				showWindow()
 			end
 		end
 	end)
@@ -594,11 +659,10 @@ function Zyren.new(options)
 		Text = "D",
 		Font = Theme.TitleFont,
 		TextSize = 14,
-		TextColor3 = Theme.Text,
+		TextColor3 = Color3.fromRGB(15, 80, 25), -- Dark Green
 		BackgroundTransparency = 1,
 		ZIndex = 5,
 	})
-	themed(discordIcon, "TextColor3", "Text")
 	themed(discordIcon, "Font", "TitleFont")
 
 	local discordBtn = Utility.create("TextButton", {
@@ -606,7 +670,7 @@ function Zyren.new(options)
 		Text = "",
 		Position = UDim2.new(1, -125, 0, 10),
 		Size = UDim2.new(0, 32, 0, 32),
-		BackgroundColor3 = Theme.Panel,
+		BackgroundColor3 = Color3.fromRGB(39, 201, 63), -- Mac Green
 		BorderSizePixel = 0,
 		ZIndex = 5,
 		Parent = topBar,
@@ -614,7 +678,7 @@ function Zyren.new(options)
 		Utility.corner(16),
 		discordIcon
 	})
-	themed(discordBtn, "BackgroundColor3", "Panel")
+	Utility.pressEffect(discordBtn)
 	
 	discordBtn.MouseButton1Click:Connect(function()
 		setClipboard("https://discord.gg/m6YTVkRZ34")
@@ -630,11 +694,10 @@ function Zyren.new(options)
 		Text = "—",
 		Font = Theme.BodyFontBold,
 		TextSize = 14,
-		TextColor3 = Theme.Text,
+		TextColor3 = Color3.fromRGB(120, 70, 10), -- Dark Yellow
 		BackgroundTransparency = 1,
 		ZIndex = 5,
 	})
-	themed(minimizeIcon, "TextColor3", "Text")
 	themed(minimizeIcon, "Font", "BodyFontBold")
 
 	local minimizeButton = Utility.create("TextButton", {
@@ -642,7 +705,7 @@ function Zyren.new(options)
 		Text = "",
 		Position = UDim2.new(1, -85, 0, 10),
 		Size = UDim2.new(0, 32, 0, 32),
-		BackgroundColor3 = Theme.Panel,
+		BackgroundColor3 = Color3.fromRGB(255, 189, 46), -- Mac Yellow
 		BorderSizePixel = 0,
 		ZIndex = 5,
 		Parent = topBar,
@@ -650,28 +713,27 @@ function Zyren.new(options)
 		Utility.corner(16),
 		minimizeIcon
 	})
-	themed(minimizeButton, "BackgroundColor3", "Panel")
+	Utility.pressEffect(minimizeButton)
 
 	minimizeButton.MouseButton1Click:Connect(function()
-		main.Visible = false
-		toggleButton.Visible = true
+		hideWindow()
 	end)
 
 	local closeIcon = Utility.create("ImageLabel", {
 		Size = UDim2.new(0, 14, 0, 14),
 		Position = UDim2.new(0.5, -7, 0.5, -7),
 		Image = "rbxassetid://6031094678", -- Cross close
+		ImageColor3 = Color3.fromRGB(120, 15, 15), -- Dark Red
 		BackgroundTransparency = 1,
 		ZIndex = 5,
 	})
-	themed(closeIcon, "ImageColor3", "Text")
 
 	local closeButton = Utility.create("TextButton", {
 		Name = "CloseBtn",
 		Text = "",
 		Position = UDim2.new(1, -45, 0, 10),
 		Size = UDim2.new(0, 32, 0, 32),
-		BackgroundColor3 = Theme.Panel,
+		BackgroundColor3 = Color3.fromRGB(255, 95, 86), -- Mac Red
 		BorderSizePixel = 0,
 		ZIndex = 5,
 		Parent = topBar,
@@ -679,10 +741,24 @@ function Zyren.new(options)
 		Utility.corner(16),
 		closeIcon
 	})
-	themed(closeButton, "BackgroundColor3", "Panel")
+	Utility.pressEffect(closeButton)
 	closeButton.MouseButton1Click:Connect(function() screenGui:Destroy() end)
 
 	-- Search Bar
+	local searchIcon = Utility.create("TextLabel", {
+		Name = "SearchIcon",
+		Text = "🔍",
+		Font = Theme.BodyFont,
+		TextSize = 10,
+		TextColor3 = Theme.SubText,
+		BackgroundTransparency = 1,
+		Size = UDim2.new(0, 16, 1, 0),
+		Position = UDim2.new(0, 10, 0, 0),
+		ZIndex = 5,
+	})
+	themed(searchIcon, "TextColor3", "SubText")
+	themed(searchIcon, "Font", "BodyFont")
+
 	local searchHolder = Utility.create("Frame", {
 		Name = "SearchHolder",
 		Position = UDim2.new(0, 240, 0, 10),
@@ -692,7 +768,8 @@ function Zyren.new(options)
 		ZIndex = 4,
 		Parent = topBar,
 	}, {
-		Utility.corner(16)
+		Utility.corner(16),
+		searchIcon
 	})
 	themed(searchHolder, "BackgroundColor3", "Panel")
 
@@ -704,8 +781,8 @@ function Zyren.new(options)
 		TextColor3 = Theme.Text,
 		PlaceholderColor3 = Theme.SubText,
 		BackgroundTransparency = 1,
-		Size = UDim2.new(1, -16, 1, 0),
-		Position = UDim2.new(0, 10, 0, 0),
+		Size = UDim2.new(1, -38, 1, 0),
+		Position = UDim2.new(0, 30, 0, 0),
 		TextXAlignment = Enum.TextXAlignment.Left,
 		ClearTextOnFocus = false,
 		Parent = searchHolder,
@@ -1040,6 +1117,7 @@ function Zyren.new(options)
 	themed(exitBtn, "BackgroundColor3", "Background")
 	themed(exitBtn.UIStroke, "Color", "Stroke")
 	themed(exitBtn.ImageLabel, "ImageColor3", "Text")
+	Utility.pressEffect(exitBtn)
 
 	exitBtn.MouseButton1Click:Connect(function()
 		screenGui:Destroy()
@@ -1070,6 +1148,7 @@ function Zyren.new(options)
 	themed(pasteBtn, "BackgroundColor3", "Background")
 	themed(pasteBtn.UIStroke, "Color", "Stroke")
 	themed(pasteBtn.ImageLabel, "ImageColor3", "Text")
+	Utility.pressEffect(pasteBtn)
 
 	local getKeyBtn = Utility.create("TextButton", {
 		Text = "  Get Key",
@@ -1096,6 +1175,7 @@ function Zyren.new(options)
 	themed(getKeyBtn, "BackgroundColor3", "Background")
 	themed(getKeyBtn.UIStroke, "Color", "Stroke")
 	themed(getKeyBtn.ImageLabel, "ImageColor3", "Text")
+	Utility.pressEffect(getKeyBtn)
 
 	local statusLabel = Utility.create("TextLabel", {
 		Text = "Awaiting key verification...",
@@ -1125,7 +1205,8 @@ function Zyren.new(options)
 			Utility.tween(keyCard, {Size = UDim2.new(0, 0, 0, 0)}, 0.25)
 			task.wait(0.25)
 			keySystemFrame:Destroy()
-			main.Visible = true
+			mainScale.Scale = 0.8
+			showWindow()
 		else
 			statusLabel.TextColor3 = Color3.fromRGB(231, 76, 60)
 			statusLabel.Text = "Invalid or expired key. Please get a new one."
@@ -1165,7 +1246,8 @@ function Zyren.new(options)
 				statusLabel.Text = "Key verified automatically."
 				task.wait(0.5)
 				keySystemFrame:Destroy()
-				main.Visible = true
+				mainScale.Scale = 0.8
+				showWindow()
 			else
 				statusLabel.Text = "Cached key expired. Please enter a new key."
 			end
@@ -1380,6 +1462,7 @@ function Zyren:AddTab(name, options)
 	themed(button, "Font", "BodyFontMedium")
 	themed(button.Icon, "ImageColor3", "SubText")
 	themed(indicator, "BackgroundColor3", "Accent")
+	Utility.pressEffect(button)
 
 	local page = Utility.create("ScrollingFrame", {
 		Size = UDim2.new(1, -20, 1, -20),
