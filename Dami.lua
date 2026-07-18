@@ -222,6 +222,11 @@ Tab.__index = Tab
 local Section = {}
 Section.__index = Section
 
+local Folder = {}
+Folder.__index = function(self, key)
+	return Folder[key] or Section[key]
+end
+
 -- ============================================================================
 -- KEY VERIFICATION SYSTEM CORE
 -- ============================================================================
@@ -362,25 +367,13 @@ function Zyren.new(options)
 	})
 	themed(sidebarMask, "BackgroundColor3", "Sidebar")
 
-	-- Sidebar Logo/Rose
-	local roseLogo = Utility.create("ImageLabel", {
-		Name = "RoseLogo",
-		Size = UDim2.new(0, 28, 0, 28),
-		Position = UDim2.new(0, 20, 0, 20),
-		BackgroundTransparency = 1,
-		Image = "rbxassetid://10734950309",
-		ImageColor3 = Theme.Accent,
-		Parent = sidebar,
-	})
-	themed(roseLogo, "ImageColor3", "Accent")
-
 	local logoText = Utility.create("TextLabel", {
-		Text = "ROSAVA",
+		Text = "DAMI",
 		Font = Theme.TitleFont,
 		TextSize = 15,
 		TextColor3 = Theme.Text,
 		BackgroundTransparency = 1,
-		Position = UDim2.new(0, 56, 0, 20),
+		Position = UDim2.new(0, 20, 0, 20),
 		Size = UDim2.new(0, 100, 0, 28),
 		TextXAlignment = Enum.TextXAlignment.Left,
 		Parent = sidebar,
@@ -725,18 +718,9 @@ function Zyren.new(options)
 		Parent = screenGui,
 	})
 
-	-- Tiled repeating rose background
-	local bgPattern = Utility.create("ImageLabel", {
-		Name = "BackgroundPattern",
-		Size = UDim2.new(1, 0, 1, 0),
-		BackgroundTransparency = 1,
-		Image = "rbxassetid://10734950309",
-		ImageColor3 = Color3.fromRGB(152, 60, 80),
-		ImageTransparency = 0.95,
-		ScaleType = Enum.ScaleType.Tile,
-		TileSize = UDim2.new(0, 80, 0, 80),
-		Parent = keySystemFrame,
-	})
+
+
+
 
 	-- Centered card
 	local keyCard = Utility.create("Frame", {
@@ -1334,25 +1318,165 @@ function Tab:AddSection(name, columnSide)
 	return section
 end
 
--- ============================================================================
--- SECTION CONTROLS: BUTTON, TOGGLE, SLIDER, TEXTBOX, DROPDOWNS
--- ============================================================================
-function Section:AddButton(text, callback)
+function Section:AddFolder(name, options)
+	options = options or {}
 	local section = self
-	local btn = card(30)
-	btn.Parent = section.contentHolder
+	local isOpen = options.default or options.open or false
+	local iconId = options.Icon or options.icon
+
+	-- The main folder container frame that holds the header and the content
+	local folderFrame = Utility.create("Frame", {
+		Size = UDim2.new(1, 0, 0, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		BackgroundTransparency = 1,
+		Parent = section.contentHolder,
+	}, {
+		Utility.create("UIListLayout", {
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Padding = UDim.new(0, 6),
+		})
+	})
+
+	-- The clickable header
+	local header = card(30)
+	header.Parent = folderFrame
+	header.LayoutOrder = 1
+
+	-- Left icon if provided
+	local textPos = UDim2.new(0, 8, 0, 0)
+	local textSize = UDim2.new(1, -40, 1, 0)
+
+	if iconId then
+		local icon = Utility.create("ImageLabel", {
+			Size = UDim2.new(0, 14, 0, 14),
+			Position = UDim2.new(0, 8, 0.5, -7),
+			Image = iconId,
+			BackgroundTransparency = 1,
+			ImageColor3 = Theme.Text,
+			Parent = header,
+		})
+		themed(icon, "ImageColor3", "Text")
+		textPos = UDim2.new(0, 28, 0, 0)
+		textSize = UDim2.new(1, -60, 1, 0)
+	end
 
 	local label = Utility.create("TextLabel", {
-		Text = text,
+		Text = name,
 		Font = Theme.BodyFontMedium,
 		TextSize = 11,
 		TextColor3 = Theme.Text,
 		BackgroundTransparency = 1,
-		Size = UDim2.new(1, -16, 1, 0),
-		Position = UDim2.new(0, 8, 0, 0),
+		Position = textPos,
+		Size = textSize,
 		TextXAlignment = Enum.TextXAlignment.Left,
-		Parent = btn,
+		Parent = header,
 	})
+	themed(label, "TextColor3", "Text")
+	themed(label, "Font", "BodyFontMedium")
+
+	-- Caret icon on the right
+	local caret = Utility.create("ImageLabel", {
+		Size = UDim2.new(0, 10, 0, 10),
+		Position = UDim2.new(1, -18, 0.5, -5),
+		Image = "rbxassetid://6031091007", -- Arrow down
+		BackgroundTransparency = 1,
+		ImageColor3 = Theme.Text,
+		Rotation = isOpen and 180 or 0,
+		Parent = header,
+	})
+	themed(caret, "ImageColor3", "Text")
+
+	-- The content container frame
+	local content = Utility.create("Frame", {
+		Size = UDim2.new(1, 0, 0, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		BackgroundTransparency = 1,
+		Visible = isOpen,
+		Parent = folderFrame,
+		LayoutOrder = 2,
+	}, {
+		Utility.pad(8, 0, 2, 4), -- Indent child elements slightly from left
+		Utility.create("UIListLayout", {
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Padding = UDim.new(0, 6),
+		})
+	})
+
+	local click = Utility.create("TextButton", {
+		Text = "", BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0), ZIndex = 5, Parent = header,
+	})
+
+	click.MouseButton1Click:Connect(function()
+		isOpen = not isOpen
+		content.Visible = isOpen
+		Utility.tween(caret, {Rotation = isOpen and 180 or 0}, 0.15)
+	end)
+
+	-- Define the folder API
+	local folderApi = setmetatable({
+		tab = section.tab,
+		contentHolder = content,
+		container = folderFrame,
+	}, Folder)
+
+	return folderApi
+end
+
+-- ============================================================================
+-- SECTION CONTROLS: BUTTON, TOGGLE, SLIDER, TEXTBOX, DROPDOWNS
+-- ============================================================================
+function Section:AddButton(text, callback, description)
+	local descText = description
+	local cb = callback
+	if type(callback) == "table" then
+		cb = callback.callback
+		descText = callback.description
+	end
+
+	local section = self
+	local btnHeight = descText and 42 or 30
+	local btn = card(btnHeight)
+	btn.Parent = section.contentHolder
+
+	local label
+	if descText then
+		label = Utility.create("TextLabel", {
+			Text = text,
+			Font = Theme.BodyFontMedium,
+			TextSize = 11,
+			TextColor3 = Theme.Text,
+			BackgroundTransparency = 1,
+			Position = UDim2.new(0, 8, 0, 4),
+			Size = UDim2.new(1, -16, 0, 18),
+			TextXAlignment = Enum.TextXAlignment.Left,
+			Parent = btn,
+		})
+		local descLabel = Utility.create("TextLabel", {
+			Text = descText,
+			Font = Theme.BodyFont,
+			TextSize = 9,
+			TextColor3 = Theme.SubText,
+			BackgroundTransparency = 1,
+			Position = UDim2.new(0, 8, 0, 20),
+			Size = UDim2.new(1, -16, 0, 16),
+			TextXAlignment = Enum.TextXAlignment.Left,
+			Parent = btn,
+		})
+		themed(descLabel, "TextColor3", "SubText")
+		themed(descLabel, "Font", "BodyFont")
+	else
+		label = Utility.create("TextLabel", {
+			Text = text,
+			Font = Theme.BodyFontMedium,
+			TextSize = 11,
+			TextColor3 = Theme.Text,
+			BackgroundTransparency = 1,
+			Size = UDim2.new(1, -16, 1, 0),
+			Position = UDim2.new(0, 8, 0, 0),
+			TextXAlignment = Enum.TextXAlignment.Left,
+			Parent = btn,
+		})
+	end
 	themed(label, "TextColor3", "Text")
 	themed(label, "Font", "BodyFontMedium")
 
@@ -1363,7 +1487,7 @@ function Section:AddButton(text, callback)
 	click.MouseButton1Click:Connect(function()
 		Utility.tween(btn, {BackgroundColor3 = Theme.HoverStroke}, 0.05)
 		task.delay(0.05, function() Utility.tween(btn, {BackgroundColor3 = Theme.Elevated}, 0.1) end)
-		if callback then callback() end
+		if cb then cb() end
 	end)
 
 	local api = {instance = btn}
@@ -1374,9 +1498,11 @@ end
 function Section:AddToggle(text, default, callback, flag)
 	local defaultVal = default
 	local flagName = flag
+	local descText = nil
 	if type(default) == "table" then
 		defaultVal = default.default
 		flagName = default.flag
+		descText = default.description or default.desc
 	elseif type(default) == "function" then
 		callback = default
 		defaultVal = false
@@ -1384,22 +1510,51 @@ function Section:AddToggle(text, default, callback, flag)
 	end
 
 	local section = self
-	local toggle = card(30)
+	local toggleHeight = descText and 42 or 30
+	local toggle = card(toggleHeight)
 	toggle.Parent = section.contentHolder
 
-	local label = Utility.create("TextLabel", {
-		Text = text,
-		Font = Theme.BodyFont,
-		TextSize = 11,
-		TextColor3 = Theme.Text,
-		BackgroundTransparency = 1,
-		Position = UDim2.new(0, 8, 0, 0),
-		Size = UDim2.new(1, -50, 1, 0),
-		TextXAlignment = Enum.TextXAlignment.Left,
-		Parent = toggle,
-	})
+	local label
+	if descText then
+		label = Utility.create("TextLabel", {
+			Text = text,
+			Font = Theme.BodyFontMedium,
+			TextSize = 11,
+			TextColor3 = Theme.Text,
+			BackgroundTransparency = 1,
+			Position = UDim2.new(0, 8, 0, 4),
+			Size = UDim2.new(1, -50, 0, 18),
+			TextXAlignment = Enum.TextXAlignment.Left,
+			Parent = toggle,
+		})
+		local descLabel = Utility.create("TextLabel", {
+			Text = descText,
+			Font = Theme.BodyFont,
+			TextSize = 9,
+			TextColor3 = Theme.SubText,
+			BackgroundTransparency = 1,
+			Position = UDim2.new(0, 8, 0, 20),
+			Size = UDim2.new(1, -50, 0, 16),
+			TextXAlignment = Enum.TextXAlignment.Left,
+			Parent = toggle,
+		})
+		themed(descLabel, "TextColor3", "SubText")
+		themed(descLabel, "Font", "BodyFont")
+	else
+		label = Utility.create("TextLabel", {
+			Text = text,
+			Font = Theme.BodyFont,
+			TextSize = 11,
+			TextColor3 = Theme.Text,
+			BackgroundTransparency = 1,
+			Position = UDim2.new(0, 8, 0, 0),
+			Size = UDim2.new(1, -50, 1, 0),
+			TextXAlignment = Enum.TextXAlignment.Left,
+			Parent = toggle,
+		})
+	end
 	themed(label, "TextColor3", "Text")
-	themed(label, "Font", "BodyFont")
+	themed(label, "Font", descText and "BodyFontMedium" or "BodyFont")
 
 	-- Pill slider track
 	local track = Utility.create("Frame", {
