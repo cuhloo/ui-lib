@@ -429,13 +429,60 @@ function Zyren.new(options)
 	})
 
 	-- Drag functionality for TopBar/Header
+	-- Drag functionality for TopBar/Header
 	local topBar = Utility.create("Frame", {
 		Name = "TopBar",
 		Size = UDim2.new(1, 0, 0, 52),
 		BackgroundTransparency = 1,
+		Active = true,
 		Parent = contentArea,
 	})
 	Utility.drag(topBar, main)
+
+	-- Floating Restore Button
+	local toggleButton = Utility.create("TextButton", {
+		Name = "ToggleBtn",
+		Position = UDim2.new(0, 20, 0, 20),
+		Size = UDim2.new(0, 48, 0, 48),
+		BackgroundColor3 = Theme.Accent,
+		BorderSizePixel = 0,
+		Visible = false,
+		Active = true,
+		Parent = screenGui,
+	}, {
+		Utility.corner(24),
+		Utility.create("UIStroke", {Color = Theme.Stroke, Thickness = 2}),
+		Utility.create("ImageLabel", {
+			Size = UDim2.new(0, 24, 0, 24),
+			Position = UDim2.new(0.5, -12, 0.5, -12),
+			Image = "rbxassetid://6031075926", -- Shield logo
+			BackgroundTransparency = 1,
+			ImageColor3 = Theme.Text,
+		})
+	})
+	themed(toggleButton, "BackgroundColor3", "Accent")
+	themed(toggleButton.UIStroke, "Color", "Stroke")
+	themed(toggleButton.ImageLabel, "ImageColor3", "Text")
+	Utility.drag(toggleButton, toggleButton)
+
+	toggleButton.MouseButton1Click:Connect(function()
+		main.Visible = true
+		toggleButton.Visible = false
+	end)
+
+	-- Keyboard toggle listener
+	local keyboardToggleConn = UserInputService.InputBegan:Connect(function(input, processed)
+		if processed then return end
+		if input.KeyCode == Enum.KeyCode.RightShift then
+			if main.Visible then
+				main.Visible = false
+				toggleButton.Visible = true
+			else
+				main.Visible = true
+				toggleButton.Visible = false
+			end
+		end
+	end)
 
 	-- User Info Card
 	local headshotImage = "rbxassetid://6077189184" -- fallback avatar
@@ -493,27 +540,30 @@ function Zyren.new(options)
 	themed(userUsername, "TextColor3", "SubText")
 	themed(userUsername, "Font", "BodyFont")
 
-	-- Header Buttons (Discord & Close)
+	-- Header Buttons (Discord, Minimize & Close)
+	local discordIcon = Utility.create("ImageLabel", {
+		Size = UDim2.new(0, 16, 0, 16),
+		Position = UDim2.new(0.5, -8, 0.5, -8),
+		Image = "rbxassetid://6031466847", -- Discord logo
+		BackgroundTransparency = 1,
+		ZIndex = 5,
+	})
+	themed(discordIcon, "ImageColor3", "Text")
+
 	local discordBtn = Utility.create("TextButton", {
 		Name = "DiscordBtn",
 		Text = "",
-		Position = UDim2.new(1, -85, 0, 10),
+		Position = UDim2.new(1, -125, 0, 10),
 		Size = UDim2.new(0, 32, 0, 32),
 		BackgroundColor3 = Theme.Panel,
 		BorderSizePixel = 0,
+		ZIndex = 5,
 		Parent = topBar,
 	}, {
 		Utility.corner(16),
-		Utility.create("ImageLabel", {
-			Size = UDim2.new(0, 16, 0, 16),
-			Position = UDim2.new(0.5, -8, 0.5, -8),
-			Image = "rbxassetid://6031466847", -- Discord logo
-			BackgroundTransparency = 1,
-			ImageColor3 = Theme.Text,
-		})
+		discordIcon
 	})
 	themed(discordBtn, "BackgroundColor3", "Panel")
-	themed(discordBtn.ImageLabel, "ImageColor3", "Text")
 	
 	discordBtn.MouseButton1Click:Connect(function()
 		setClipboard("https://discord.gg/m6YTVkRZ34")
@@ -524,6 +574,44 @@ function Zyren.new(options)
 		})
 	end)
 
+	local minimizeIcon = Utility.create("ImageLabel", {
+		Size = UDim2.new(0, 14, 0, 14),
+		Position = UDim2.new(0.5, -7, 0.5, -7),
+		Image = "rbxassetid://6023426917", -- Minus icon
+		BackgroundTransparency = 1,
+		ZIndex = 5,
+	})
+	themed(minimizeIcon, "ImageColor3", "Text")
+
+	local minimizeButton = Utility.create("TextButton", {
+		Name = "MinBtn",
+		Text = "",
+		Position = UDim2.new(1, -85, 0, 10),
+		Size = UDim2.new(0, 32, 0, 32),
+		BackgroundColor3 = Theme.Panel,
+		BorderSizePixel = 0,
+		ZIndex = 5,
+		Parent = topBar,
+	}, {
+		Utility.corner(16),
+		minimizeIcon
+	})
+	themed(minimizeButton, "BackgroundColor3", "Panel")
+
+	minimizeButton.MouseButton1Click:Connect(function()
+		main.Visible = false
+		toggleButton.Visible = true
+	end)
+
+	local closeIcon = Utility.create("ImageLabel", {
+		Size = UDim2.new(0, 14, 0, 14),
+		Position = UDim2.new(0.5, -7, 0.5, -7),
+		Image = "rbxassetid://6031094678", -- Cross close
+		BackgroundTransparency = 1,
+		ZIndex = 5,
+	})
+	themed(closeIcon, "ImageColor3", "Text")
+
 	local closeButton = Utility.create("TextButton", {
 		Name = "CloseBtn",
 		Text = "",
@@ -531,28 +619,23 @@ function Zyren.new(options)
 		Size = UDim2.new(0, 32, 0, 32),
 		BackgroundColor3 = Theme.Panel,
 		BorderSizePixel = 0,
+		ZIndex = 5,
 		Parent = topBar,
 	}, {
 		Utility.corner(16),
-		Utility.create("ImageLabel", {
-			Size = UDim2.new(0, 14, 0, 14),
-			Position = UDim2.new(0.5, -7, 0.5, -7),
-			Image = "rbxassetid://6031094678", -- Cross close
-			BackgroundTransparency = 1,
-			ImageColor3 = Theme.Text,
-		})
+		closeIcon
 	})
 	themed(closeButton, "BackgroundColor3", "Panel")
-	themed(closeButton.ImageLabel, "ImageColor3", "Text")
 	closeButton.MouseButton1Click:Connect(function() screenGui:Destroy() end)
 
 	-- Search Bar
 	local searchHolder = Utility.create("Frame", {
 		Name = "SearchHolder",
 		Position = UDim2.new(0, 240, 0, 10),
-		Size = UDim2.new(1, -340, 0, 32),
+		Size = UDim2.new(1, -380, 0, 32),
 		BackgroundColor3 = Theme.Panel,
 		BorderSizePixel = 0,
+		ZIndex = 4,
 		Parent = topBar,
 	}, {
 		Utility.corner(16)
@@ -691,6 +774,7 @@ function Zyren.new(options)
 
 	self:RegisterConnection(toolTipConn)
 	self:RegisterConnection(telemetryConn)
+	self:RegisterConnection(keyboardToggleConn)
 
 	-- Search filter
 	local function filterControls(query)
@@ -743,6 +827,7 @@ function Zyren.new(options)
 
 
 	-- Centered card
+	local keyStroke = Utility.create("UIStroke", {Color = Theme.Accent, Thickness = 2, Transparency = 0.2})
 	local keyCard = Utility.create("Frame", {
 		Name = "KeyCard",
 		AnchorPoint = Vector2.new(0.5, 0.5),
@@ -753,10 +838,21 @@ function Zyren.new(options)
 		Parent = keySystemFrame,
 	}, {
 		Utility.corner(12),
-		Utility.create("UIStroke", {Color = Theme.Stroke, Thickness = 1})
+		keyStroke
 	})
 	themed(keyCard, "BackgroundColor3", "Panel")
-	themed(keyCard.UIStroke, "Color", "Stroke")
+	themed(keyStroke, "Color", "Accent")
+
+	-- Pulsing glow animation for keyCard border
+	task.spawn(function()
+		while task.wait(1.5) do
+			if not keyCard.Parent then break end
+			Utility.tween(keyStroke, {Color = Theme.Accent, Thickness = 2.5, Transparency = 0.1}, 0.75, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+			task.wait(0.75)
+			if not keyCard.Parent then break end
+			Utility.tween(keyStroke, {Color = Theme.AccentDim or Theme.Stroke, Thickness = 1.5, Transparency = 0.4}, 0.75, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+		end
+	end)
 
 	local welcomeLabel = Utility.create("TextLabel", {
 		Text = "Welcome to",
