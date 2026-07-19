@@ -73,6 +73,70 @@ function Utility.pad(all, right, top, bottom)
 	})
 end
 
+local function addRoseBackdrop(parent, options)
+	options = options or {}
+	local backdrop = Utility.create("ImageLabel", {
+		Name = options.name or "RoseBackdrop",
+		Parent = parent,
+		Size = options.size or UDim2.new(1, 0, 1, 0),
+		Position = options.position or UDim2.new(0, 0, 0, 0),
+		BackgroundTransparency = 1,
+		ScaleType = Enum.ScaleType.Crop,
+		Image = options.image or "https://keta.lol/uploads/hosted/7a611f78-043c-43e8-90f7-bf8829d838c1.webp",
+		ImageTransparency = options.transparency or 0.4,
+		ImageColor3 = options.imageColor or Color3.fromRGB(255, 226, 234),
+		ZIndex = options.zIndex or 0,
+	})
+
+	local overlay = Utility.create("Frame", {
+		Name = options.overlayName or "RoseOverlay",
+		Parent = parent,
+		Size = options.size or UDim2.new(1, 0, 1, 0),
+		Position = options.position or UDim2.new(0, 0, 0, 0),
+		BackgroundColor3 = options.overlayColor or Color3.fromRGB(10, 6, 8),
+		BackgroundTransparency = options.overlayTransparency or 0.42,
+		BorderSizePixel = 0,
+		ZIndex = options.overlayZIndex or 1,
+	}, {
+		Utility.create("UIGradient", {
+			Color = ColorSequence.new({
+				ColorSequenceKeypoint.new(0, Color3.fromRGB(18, 10, 14)),
+				ColorSequenceKeypoint.new(0.5, Color3.fromRGB(8, 4, 7)),
+				ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 10, 15))
+			}),
+			Rotation = 90
+		}),
+	})
+
+	overlay.ZIndex = options.overlayZIndex or 1
+	backdrop.ZIndex = options.zIndex or 0
+	return backdrop, overlay
+end
+
+local function addGlowLayer(parent, options)
+	options = options or {}
+	local glow = Utility.create("Frame", {
+		Name = options.name or "GlowLayer",
+		Parent = parent,
+		Size = options.size or UDim2.new(1, 0, 1, 0),
+		Position = options.position or UDim2.new(0, 0, 0, 0),
+		BackgroundColor3 = options.color or Theme.Accent,
+		BackgroundTransparency = options.transparency or 0.9,
+		BorderSizePixel = 0,
+		ZIndex = options.zIndex or 2,
+	}, {
+		Utility.create("UIGradient", {
+			Color = ColorSequence.new({
+				ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+				ColorSequenceKeypoint.new(0.35, options.color or Theme.Accent),
+				ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))
+			}),
+			Rotation = 45
+		})
+	})
+	return glow
+end
+
 local ActiveTweens = setmetatable({}, {__mode = "k"})
 
 function Utility.tween(inst, props, duration, style, dir, key)
@@ -331,6 +395,15 @@ function Zyren.new(options)
 		IgnoreGuiInset = true,
 	})
 
+	addRoseBackdrop(screenGui, {
+		name = "ScreenBackdrop",
+		imageColor = Color3.fromRGB(255, 226, 234),
+		transparency = 0.45,
+		zIndex = -1,
+		overlayTransparency = 0.55,
+		overlayZIndex = 0,
+	})
+
 	local targetParent
 	if gethui then
 		local ok, res = pcall(gethui)
@@ -436,6 +509,33 @@ function Zyren.new(options)
 	})
 	themed(main, "BackgroundColor3", "Background")
 	themed(windowStroke, "Color", "Accent")
+
+	addRoseBackdrop(main, {
+		name = "MainBackground",
+		imageColor = Color3.fromRGB(255, 226, 234),
+		transparency = 0.38,
+		overlayTransparency = 0.48,
+	})
+
+	local mainGlow = addGlowLayer(main, {
+		name = "MainGlow",
+		color = Color3.fromRGB(152, 60, 80),
+		transparency = 0.88,
+		zIndex = 2,
+	})
+
+	task.spawn(function()
+		while task.wait(2.8) do
+			if not main.Parent or not main.Visible then
+				task.wait(0.2)
+				continue
+			end
+			Utility.tween(mainGlow, {BackgroundTransparency = 0.78}, 1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+			task.wait(1.2)
+			if not main.Parent then break end
+			Utility.tween(mainGlow, {BackgroundTransparency = 0.92}, 1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+		end
+	end)
 
 	local function showWindow()
 		main.Visible = true
@@ -949,13 +1049,24 @@ function Zyren.new(options)
 		Name = "KeySystemFrame",
 		Size = UDim2.new(1, 0, 1, 0),
 		BackgroundColor3 = Color3.fromRGB(20, 15, 18),
+		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 		Parent = screenGui,
 	})
 
+	addRoseBackdrop(keySystemFrame, {
+		name = "KeyBackground",
+		imageColor = Color3.fromRGB(255, 226, 234),
+		transparency = 0.45,
+		overlayTransparency = 0.5,
+	})
 
-
-
+	local keyGlow = addGlowLayer(keySystemFrame, {
+		name = "KeyGlow",
+		color = Color3.fromRGB(152, 60, 80),
+		transparency = 0.92,
+		zIndex = 2,
+	})
 
 	-- Centered card
 	local keyStroke = Utility.create("UIStroke", {Color = Theme.Accent, Thickness = 2, Transparency = 0.2})
